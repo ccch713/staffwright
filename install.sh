@@ -87,8 +87,15 @@ if [ "$WITH_DSH" = true ]; then
     log "Configuring the dsh MCP bridge (Staffwright tools via the official interface)..."
     DSH_BIN="$(command -v dsh || true)"
     if [ -z "$DSH_BIN" ]; then
-        log "⚠️  dsh command not found — skipping MCP configuration (you can run the dsh plugin commands manually)"
-    else
+        if command -v npm >/dev/null 2>&1; then
+            log "dsh not found — installing the official DSH engine (npm i -g @deepseek-ai/dsh)..."
+            npm i -g @deepseek-ai/dsh && DSH_BIN="$(command -v dsh || true)" \
+                || log "⚠️  dsh install failed — install it manually (npm i -g @deepseek-ai/dsh) and re-run with --with-dsh"
+        else
+            log "⚠️  dsh not found and npm is unavailable — install Node.js 18+ first, then re-run with --with-dsh"
+        fi
+    fi
+    if [ -n "$DSH_BIN" ]; then
         # 1) Make sure the mcp-client package is present in the web profile (the patch references it;
         #    if missing, this is skipped silently)
         if ! ls "$HOME/.dsh/profiles/web/node_modules/@deepseek-ai/dsh-mcp-client" >/dev/null 2>&1; then

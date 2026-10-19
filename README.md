@@ -32,25 +32,33 @@ Under the hood, Staffwright runs the official **DeepSeek Harness (DSH)** engine 
 
 ```bash
 # 1. On the always-on machine (macOS 14+ / Ubuntu 22+):
-npm i -g @deepseek-ai/dsh
-
-# 2. Install Staffwright
 git clone https://github.com/ccch713/staffwright.git && cd staffwright
-./install.sh --with-dsh        # gateway + DSH MCP bridge
+./install.sh --with-dsh        # installs the DSH engine automatically if missing,
+                               # then the gateway + DSH MCP bridge
+./install.sh --port 8600       # 2. start (runs the test suite first, then serves)
 
-# 3. Start (runs the test suite first, then serves)
-./install.sh --port 8600
-
-# 4. From any device on the same network:
+# 3. From any device on the same network:
 #    http://<server-ip>:8600/   → the DSH workbench, team-wide
 #    Phones/tablets: "Add to Home Screen" for an App-like experience
 
-# 5. Add your API key in DSH Settings → Models
-# 6. In chat, ask the model to "search the knowledge base" or "remember …"
+# 4. Add your API key in DSH Settings → Models (see "Do I need an API key?" below)
+# 5. In chat, ask the model to "search the knowledge base" or "remember …"
 #    → it auto-invokes the built-in MCP tools
 ```
 
 **Requirements**: one ordinary computer/server (**8 GB RAM minimum, 16 GB+ recommended**), Python 3.11+, no GPU needed (LLM via cloud API or local Ollama).
+
+## Do I Need an API Key?
+
+Staffwright ships **no keys, no accounts, no lock-in** — you pick one of three ways to give your staff a brain. Nothing else needs configuring: the gateway, memory, knowledge base and document search work out of the box; the key only powers the chat model.
+
+| Option | Cost | Best for |
+|---|---|---|
+| **DeepSeek cloud key** | A few dollars a month for a whole small team — DeepSeek's API is among the cheapest of frontier-grade models | Fastest start: paste one key in DSH Settings → Models |
+| **Local Ollama** (or any OpenAI-compatible endpoint) | Free, offline | Privacy-max / air-gapped networks |
+| **Managed relay** *(planned)* | Monthly bundle, zero config | "Just make it work" teams — opt-in, never a default |
+
+Then hire your first staff member in ~5 minutes from [`roles/`](roles/) — see below.
 
 **Prefer Docker?**
 
@@ -104,6 +112,21 @@ Most AI-assistant setups stop at "chat in a browser tab". Staffwright is a **com
 | 🔌 DSH integration | Official MCP interface (`streamable-http`) — DSH UI, settings and model config stay 100% official |
 | 🖥️ Virtual office | Real-activity pixel-art visualization; failures raise a banner; day digest importance-weighted |
 | 🛟 Ops | One-click backup/restore, optional TLS, Docker one-command deploy, version/upgrade check, Windows exe |
+
+## Ready-Made AI Staff — Pick a Role, Not a Blank Prompt
+
+Installing is not the finish line; a new AI hire needs a job description. Staffwright ships **role packs** distilled from real small-business deployments, so a new team goes *install → pick a role → useful in under an hour*:
+
+| Role pack | Hires as | Headline workflows |
+|---|---|---|
+| [`front-desk`](roles/front-desk/) | receptionist | FAQ from KB, appointment reminders & no-show reduction, missed-call text-back, review requests |
+| [`lead-follower`](roles/lead-follower/) | sales development rep | instant first response, missed-call text-back, 0/1/3/7-day follow-up cadence |
+| [`ecommerce-ops`](roles/ecommerce-ops/) | ops assistant | customer-reply drafts, review responses, listing polish, daily digest |
+| [`listing-writer`](roles/listing-writer/) | real-estate assistant | platform-ready listings, lead qualification, viewing scheduling |
+| [`office-admin`](roles/office-admin/) | chief-of-staff assistant | daily digest, meeting notes → KB, invoice triage |
+| [`librarian`](roles/librarian/) | knowledge curator | KB ingestion & curation, retrieval health, gap reports |
+
+The field-tested deployments behind these packs — dental clinic, e-commerce shop, real-estate agency — are documented in [`docs/playbooks.md`](docs/playbooks.md).
 
 ---
 
@@ -168,6 +191,7 @@ Only items actually planned or already delivered are listed.
 - [ ] One-line `curl … | bash` installer
 - [ ] Full English documentation pass (some docs/UI strings still reference the legacy `deepddw` codename)
 - [ ] Managed cloud (overseas regions)
+- [ ] Optional managed relay for model tokens — zero-config keys for teams who want them; strictly opt-in, BYO-key stays the default
 - [ ] Community Discord
 
 ---
