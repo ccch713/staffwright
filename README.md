@@ -1,184 +1,139 @@
-# deepDDW — Memory & Knowledge Base for DeepSeek Harness, Reachable from Any Device on Your LAN
+# Staffwright — Your Small Team's AI Staff, Self-Hosted
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![CI](https://github.com/ccch713/staffwright/actions/workflows/ci.yml/badge.svg)](https://github.com/ccch713/staffwright/actions/workflows/ci.yml)
 [![Listed in awesome-deepseek-harness](https://img.shields.io/badge/awesome--deepseek--harness-Listed-blue)](https://github.com/0xsline/awesome-deepseek-harness#memory--knowledge)
-[![CI](https://github.com/ccch713/deepddw/actions/workflows/ci.yml/badge.svg)](https://github.com/ccch713/deepddw/actions/workflows/ci.yml)
 
-> **English** · [简体中文](README.zh-CN.md)
+**Staffwright turns one ordinary computer into your team's AI workstation: shared long-term memory, a company knowledge base, document search, and a live office view of your AI at work. Deploy once — every phone, laptop and tablet on your network reaches it from the browser. No app installs. Up to ~20 people. MIT-licensed.**
 
-**deepDDW gives DeepSeek Harness (DSH) the three pieces it's missing — memory, a knowledge base, and document search — and makes all of it reachable from *any* device on your LAN. No app install. No DSH source changes.**
+*(staff + wright, as in "playwright" — a maker of staff.)*
 
-- 🧠 **Memory** — cross-session long-term memory, write/search via DSH's official MCP interface
-- 📚 **Knowledge base** — ingest & search your docs (industry docs, SOPs, research notes) anytime
-- 🌐 **LAN-wide multi-device** — deploy once; phones, laptops and tablets on the same network all use the same DSH workbench
+- 🧠 **Shared memory** — cross-session long-term memory, exposed through the official MCP interface and shared by the whole team
+- 📚 **Knowledge base** — ingest and search your docs anytime: industry material, SOPs, research notes
+- 🌐 **Every device on the network** — deploy once on one always-on machine; desktops, phones and tablets all connect from the browser
+- 🏠 **Your hardware** — data stays on your server and never leaves your LAN
+- 🖥️ **Virtual office** — a pixel-art, view-only visualization of your AI staff at work
 
-**Try it in 60 seconds:**
+Under the hood, Staffwright runs the official **DeepSeek Harness (DSH)** engine untouched — zero source changes, all integration through DSH's standard MCP interface. Staffwright is the standalone, international-first distribution of the deepDDW project; the DSH-plugin line continues at [ccch713/deepddw](https://github.com/ccch713/deepddw).
 
-```bash
-npm i -g @deepseek-ai/dsh              # 1. install official DSH on the server
-git clone https://github.com/ccch713/deepddw.git && cd deepddw
-./install.sh --with-dsh                # 2. install deepDDW
-./install.sh --port 8600               # 3. start
-# 4. from any device on your LAN: open http://<server-ip>:8600/  (phone: scan the QR to auto-pair)
-```
-
-> 📸 *Screenshot: phone / tablet accessing the workbench (coming soon).*
-
-**Status**: v0.8.0 · MIT · CI (pytest + ruff) ✅ · DSH for Teams — multi-user, LAN multi-device, memory & KB with team distillation · migration import/export, scope promote, incognito, retrieval health · org binding server (bindcode-v1, optional) · **virtual office (view-only activity visualization)** · [Listed in awesome-deepseek-harness](https://github.com/0xsline/awesome-deepseek-harness#memory--knowledge) · Roadmap below
-
-> ## ⚠️ IMPORTANT — Read Before Installing
+> ## ⚠️ Read Before Installing
 >
-> deepDDW implements **its own memory and knowledge-base isolation**. To avoid conflicts or memory confusion, **before installing**:
+> Staffwright implements **its own memory and knowledge-base isolation**. To avoid conflicts or memory confusion:
 >
 > 1. **Back up** your existing memory and knowledge-base contents (wherever they live in your DSH setup);
-> 2. **Uninstall/disable** any other memory or knowledge-base plugins you have installed;
-> 3. Only then install deepDDW and let it own the memory & knowledge-base stack.
+> 2. **Uninstall/disable** any other memory or knowledge-base plugins;
+> 3. Only then install Staffwright and let it own the memory & knowledge-base stack.
 >
-> Running deepDDW alongside other memory/KB plugins may cause **data conflicts or memory mixing** between namespaces. You have been warned. ⚠️
+> Running it alongside other memory/KB plugins may cause data conflicts or memory mixing between namespaces.
 
 ---
 
-## Why deepDDW?
-
-Most DSH extensions give you memory *alone*. deepDDW is a **complete workstation** — memory + knowledge base + document search + **LAN-wide multi-device access**:
-
-| Official DSH limitation | deepDDW solution |
-|------------------------|------------------|
-| 🔒 **Local-only access** | ✅ **LAN-wide access**: deploy once on a server; desktops, laptops, phones and tablets on the same network all connect |
-| 🧠 **No memory** | ✅ Long-term memory write/search — conversation experience is accumulated |
-| 📚 **No knowledge base** | ✅ Knowledge base search/ingest — industry docs, SOPs, research notes, callable anytime |
-
-**In one sentence**: turn a "personal toy" into a tool a small team can actually use — **fully packaged, easy to deploy, low maintenance, ready for small businesses** (up to ~20 people) for their daily AI workflow.
-
-deepDDW distills lessons from real-world enterprise deployments into the DSH ecosystem as open source (MIT).
-
-## Which Scenario Fits You?
-
-deepDDW is built for **individuals, families, departments and small businesses — roughly up to 20 people and 20 devices on one LAN**. Find your scenario:
-
-| Scenario | Typical setup | What you get |
-|---|---|---|
-| 🧑‍💻 **Individual · multi-device** | One person; laptop + phone + tablet | Deploy once on any always-on machine you own (NAS / mini host / old PC): every device of yours shares the same memory & knowledge base, and the data never leaves your hardware. Don't want to run anything? **Pro Cloud** hosts it for you with managed multi-device sync and daily backups. |
-| 👨‍👩‍👧 **Family · multi-person, multi-device** | A household; one server, several members | "Deploy once, the whole family can use it." Each member gets an independent account with a private memory namespace; **family distillation** merges everyone's recent highlights into a shared family space (rule-based dedup — works even without an LLM key). |
-| 🏢 **Department-level** | One department (≤20 people) inside a larger organization | Run deepDDW as your department workbench. Optionally enable the **bindcode-v1 org backend**: staff apps bind with a scan code, the server becomes the org backend for the assistant — while each member keeps personal mode (their own models, on-device memory) and can switch back at any time, unbinding deletes nothing. |
-| 🏪 **Small business** | A company of up to ~20 people running daily AI workflows | **Team mode**: multi-user accounts, team distillation (LLM-refined, deduplicated shared team memory), scope promote, incognito sessions, retrieval health — all in the open-source build. Need SSO, audit logs or private-deployment support on top? That's the Enterprise tier (see [Commercial & Support](#commercial--support)). |
-
-**Rule of thumb**: one instance per team of ≤20 people on one network — if your scenario fits in one room, one floor, or one VPN, deepDDW fits you.
-
----
-
-## How It Works (Technical Path)
-
-```
-📱 Phone / 💻 Desktop / 📱 Tablet / 🖥️ Laptop — any device on the LAN
-   │                  (browser access, no App install)
-   ▼
-deepDDW Gateway (one server on the LAN)
-   ├─ /dsh/*   proxy → DSH engine (official UI, model config & chat untouched)
-   ├─ /api/*   proxy → DSH RPC/API
-   └─ /api/v1/*  deepDDW capabilities: Knowledge Base / Memory / Docs / LLM config
-        │
-        │  DSH official MCP client (streamable-http)
-        ▼
-deepDDW MCP tools (auto-invoked by the model)
-   ├─ mcp__deepddw__ddw_kb_search          knowledge base search
-   ├─ mcp__deepddw__ddw_memory_put         write memory
-   ├─ mcp__deepddw__ddw_memory_search      search memory
-   └─ mcp__deepddw__ddw_docs_portal_search document search
-```
-
-**Integration = DSH standard MCP**: DSH natively supports MCP clients; deepDDW exposes a standard `streamable-http` endpoint — **zero intrusion, zero changes to DSH source**. The UI, settings and model configuration all remain official.
-
----
-
-## Virtual Office (0.8.0)
-
-Open `/ui/office.html` and watch your deepDDW at work: every subsystem is a pixel-art staff member —
-the gateway doorman waves devices in, the chat receptionist types away, the memory butler files notes,
-the librarian shelves new docs, the meter clerk bills LLM calls. Real activity drives the animations
-(no fake loops: 30 min without events → back to idle), failures raise a banner, and the day's digest
-is importance-weighted. Fully programmatic rendering — zero third-party art assets, zero runtime
-dependencies. **View-only by design**: the API exposes nothing but job titles and whitelisted count
-phrases — never document contents, memory values, or chat transcripts.
-
-## Why Does It Work on Your LAN?
-
-The official DSH listens on `localhost` only (for security), so phones/tablets cannot connect. deepDDW solves this with **gateway proxying**:
-
-- **DSH stays bound to localhost** (official security design preserved)
-- **deepDDW gateway listens on the LAN**, any device opens `http://<server-ip>:8600/` to reach the original DSH workbench
-- All data stays on **your** server — never leaves the LAN
-
-**Deploy once, the whole family/team can use it** — a capability the official DSH does not provide.
-
----
-
-## Quick Start
+## Try It in 60 Seconds
 
 ```bash
-# 1. Install DSH (official) on the server
+# 1. On the always-on machine (macOS 14+ / Ubuntu 22+):
 npm i -g @deepseek-ai/dsh
 
-# 2. Install deepDDW (packaged, one command)
-git clone https://github.com/ccch713/deepddw.git
-cd deepddw && ./install.sh --with-dsh
+# 2. Install Staffwright
+git clone https://github.com/ccch713/staffwright.git && cd staffwright
+./install.sh --with-dsh        # gateway + DSH MCP bridge
 
-# 3. Start
+# 3. Start (runs the test suite first, then serves)
 ./install.sh --port 8600
 
-# 4. Open from any device on the LAN:
-#    http://<server-ip>:8600/   → original DSH workbench
+# 4. From any device on the same network:
+#    http://<server-ip>:8600/   → the DSH workbench, team-wide
 #    Phones/tablets: "Add to Home Screen" for an App-like experience
 
-# 5. Add your API Key in DSH Settings → Models
-# 6. In chat, ask the model to "search the knowledge base" or "remember ..."
-#    → it auto-invokes the mcp__deepddw__* tools
+# 5. Add your API key in DSH Settings → Models
+# 6. In chat, ask the model to "search the knowledge base" or "remember …"
+#    → it auto-invokes the built-in MCP tools
 ```
 
 **Requirements**: one ordinary computer/server (**8 GB RAM minimum, 16 GB+ recommended**), Python 3.11+, no GPU needed (LLM via cloud API or local Ollama).
 
-### Windows (standalone exe)
-
-A Windows build is produced automatically by the `windows-build` workflow — download `deepddw-windows.zip` from the latest **Actions → Artifacts**:
+**Prefer Docker?**
 
 ```bash
-# 1. Unzip anywhere (no Python/Node needed on the target machine)
-deepddw-windows/deepddw.exe
-
-# 2. Optional: point data/config at a custom location
-set DDW_DATA_DIR=%USERPROFILE%\.deepddw
-set DDW_ACCESS_TOKEN=<your-token>
-
-# 3. Start (listens on 0.0.0.0:8500) → open http://<host>:8500/health
-deepddw.exe
+cp .env.example .env    # set DDW_ACCESS_TOKEN
+docker compose -f deepddw-compose.yml up -d --build
+# → http://<host>:8500/
 ```
 
-Upgrades are cheap: replace the whole folder with a newer zip — your data (under `%USERPROFILE%\.deepddw`) is untouched. See [`docs/windows-packaging.md`](docs/windows-packaging.md) for the full evaluation (PyInstaller one-dir + CI auto-build) and the manual build steps.
+### Windows (standalone exe)
+
+A Windows build is produced automatically by CI — download `deepddw-windows.zip` (legacy artifact name) from the latest **Actions → Artifacts**:
+
+```bash
+deepddw-windows/deepddw.exe          # unzip anywhere, no Python/Node needed
+# optional: set DDW_DATA_DIR / DDW_ACCESS_TOKEN
+# starts on 0.0.0.0:8500 → open http://<host>:8500/health
+```
+
+Upgrades: replace the folder with a newer zip — your data (under `%USERPROFILE%\.deepddw`) is untouched. See `docs/windows-packaging.md`.
 
 ---
 
-## Multi-Device on LAN (0.2.0)
+## Why Staffwright?
 
-deepDDW is built for **up to 20 devices on your LAN** sharing one gateway:
+Most AI-assistant setups stop at "chat in a browser tab". Staffwright is a **complete workstation**:
 
-- **Device identity** — each browser persists a `device_id` (localStorage) and can set a friendly name on the launcher; reconnects keep the same identity.
-- **Online status** — devices register/heartbeat to the gateway; `/api/v1/status` (Token-protected) shows who is online, active WebSockets, request counts, DB size and version. The launcher renders a live status card for admins.
-- **Rate limiting** — sliding-window per Token + per IP (default 60 req/min/token, global cap → 503 overload protection); configurable via `config/deployment.yaml` → `security.rate_limit.*` or `DDW_RATE_LIMIT_*` env.
-- **SQLite concurrency** — WAL + `busy_timeout=5000` + `synchronous=NORMAL` on every connection, plus a process-wide write lock for cross-table transactions (20 concurrent writers verified, no `database is locked`).
+| Typical self-hosted assistant | Staffwright |
+|---|---|
+| 🔒 Bound to one machine, or one browser profile | ✅ **LAN-wide access**: deploy once; every device on the network connects |
+| 🧠 No memory between sessions | ✅ Long-term memory write/search — the assistant accumulates context |
+| 📚 No knowledge base | ✅ Ingest & search your own docs, SOPs and notes, callable from chat |
+| 👤 Single-user mindset | ✅ **Team mode**: multi-user accounts, team memory distillation, workspace isolation, incognito sessions, retrieval health |
+| 🕶️ Opaque backend | ✅ **Virtual office**: watch every subsystem at work — view-only by design |
+
+**In one sentence**: turn a "personal AI toy" into a tool a small team actually runs its daily AI workflow on — fully packaged, easy to deploy, low maintenance, up to ~20 people.
+
+> **Rule of thumb**: one instance per team of ≤20 people on one network. If your scenario fits in one room, one floor, or one VPN, Staffwright fits you.
+
+---
+
+## What's Inside
+
+| Capability | What you get |
+|---|---|
+| 🧠 Memory | Cross-session long-term memory; results ranked by relevance (layer weight × hit count × freshness) |
+| 📚 Knowledge base | Ingest & search; session → document auto-ingest; hybrid retrieval (SQLite FTS5 + optional LanceDB vectors, RRF fusion) |
+| 🔎 Document search | Optional SearXNG aggregate search service |
+| 🌐 Multi-device gateway | Device identity & online registry, live status panel, rate limiting, session resume across devices |
+| 👥 Team features | Multi-user accounts, team distillation (deduplicated shared team memory), workspace isolation, scope promote, incognito |
+| 🔌 DSH integration | Official MCP interface (`streamable-http`) — DSH UI, settings and model config stay 100% official |
+| 🖥️ Virtual office | Real-activity pixel-art visualization; failures raise a banner; day digest importance-weighted |
+| 🛟 Ops | One-click backup/restore, optional TLS, Docker one-command deploy, version/upgrade check, Windows exe |
+
+---
+
+## How It Works
 
 ```
-POST /api/v1/device/register    # register / rename this device (idempotent)
-POST /api/v1/device/heartbeat   # keep-alive
-GET  /api/v1/status             # status panel (token required)
+📱 Phone / 💻 Desktop / 📱 Tablet / 🖥️ Laptop — any device on the network
+   │                  (browser access, no app install)
+   ▼
+Staffwright Gateway (one server on your network)
+   ├─ /dsh/*     proxy → DSH engine (official UI, model config & chat untouched)
+   ├─ /api/*     proxy → DSH RPC/API
+   └─ /api/v1/*  Staffwright capabilities: Knowledge Base / Memory / Docs / LLM config
+        │
+        │  DSH official MCP client (streamable-http)
+        ▼
+Staffwright MCP tools (auto-invoked by the model)
+   ├─ mcp__deepddw__ddw_kb_search           knowledge base search
+   ├─ mcp__deepddw__ddw_memory_put          write memory
+   ├─ mcp__deepddw__ddw_memory_search       search memory
+   └─ mcp__deepddw__ddw_docs_portal_search  document search
 ```
 
-**Also in 0.2.0:**
+**Integration = DSH standard MCP** — zero intrusion, zero changes to DSH source. (Tool names keep the internal `deepddw` codename; a rename pass is on the roadmap.)
 
-- **Workspace isolation** — devices pick a workspace (default `shared`); memory/logs and MCP memory tools are scoped per workspace, docs filtered by slug prefix. Legacy clients are unaffected.
-- **Session resume across devices** — recent session summaries (up to 5) with a "continue" button: pick up a conversation on your phone where you left off on desktop.
-- **One-click backup / restore** — backup via API (downloadable); restore validates the SQLite file (header + integrity check) and keeps a `.pre-restore` safety copy before replacing the main DB.
-- **Optional TLS** — one-command self-signed cert (`scripts/gen_self_signed_cert.sh`, 1-year), enabled via `security.tls.*`; HTTP unchanged when off. For external access prefer a Caddy/Nginx reverse proxy (see `docs/tls.md`).
-- **Version / upgrade check** — `/api/v1/version` reports `latest_version` / `update_available` (GitHub releases, 1h cache, offline-degraded); the launcher shows an upgrade banner.
+---
+
+## Virtual Office
+
+Open `/ui/office.html` and watch your Staffwright at work: every subsystem is a pixel-art staff member — the gateway doorman waves devices in, the chat receptionist types away, the memory butler files notes, the librarian shelves new docs, the meter clerk bills LLM calls. Real activity drives the animations (no fake loops: 30 minutes without events → back to idle); failures raise a banner; the day's digest is importance-weighted. Fully programmatic rendering — zero third-party art assets, zero runtime dependencies. **View-only by design**: the API exposes nothing but job titles and whitelisted count phrases — never document contents, memory values, or chat transcripts.
 
 ---
 
@@ -186,118 +141,59 @@ GET  /api/v1/status             # status panel (token required)
 
 | Capability | Description |
 |-----------|-------------|
-| 🔐 Local-only data | Knowledge base & memory stay on your server, never leave the LAN |
-| 🏠 LAN password-free | Optional (opt-in): LAN requests skip the token — **OFF by default** (set `DDW_LAN_BYPASS=1` to enable; trusted LANs only) |
-| 🌐 External access | Optional Token gate (short-code supported); unauthorized → 401 |
-| 🛡️ DSH secure binding | DSH stays on localhost; gateway exposes it — official security design preserved |
-
----
-
-## Tech Stack & License
-
-| Component | Description | License |
-|-----------|-------------|---------|
-| DSH engine | Official DeepSeek Harness (source untouched) | MIT |
-| deepDDW gateway | FastAPI + SQLite + MCP dual-protocol | MIT |
-| Memory / Knowledge base | SQLite storage (agentmemory / vectors optional) | MIT |
-| Search | Optional SearXNG | AGPL-3.0 (server-side HTTP, exemption assessed) |
-
-**deepDDW itself: MIT License** — free to use, modify, and commercially deploy; keep the copyright notice.
-
-See [`NOTICE`](NOTICE) for full third-party attribution.
-
----
-
-## Ecosystem & Feedback
-
-- **Extend with official DSH plugins**: deepDDW keeps DSH's native plugin mechanism intact. Install official plugins straight from the npm registry via the DSH official command — the only channel we recommend, to avoid supply-chain poisoning:
-  ```bash
-  dsh plugin --profile web add <npm-package>   # official npm registry only
-  ```
-  See [`SECURITY.md`](SECURITY.md) for our third-party plugin disclaimer and what deepDDW guarantees (memory & knowledge base only; no data theft/exploitation/sale).
-- **Knowledge distillation**: use whatever **distillation skill / workflow** you prefer — the methodology is yours; deepDDW provides the complete pipeline "distilled output → searchable knowledge base → model-usable". More plugins and tools are on the way.
-- **Memory / knowledge migration**: knowledge base uses standard SQLite; memory is organized by namespace/key/value — import from other agents or tools.
-- **Feedback**: we'd love to hear how you use it; stronger open-source tools are coming in future releases.
-
----
-
-
-## Enterprise Backend for the DDW AI Assistant
-
-deepDDW ships an optional, **off-by-default** plugin that lets a single instance act as the organization backend for the DDW AI Assistant app family, via the open [bindcode-v1](docs/组织连接协议-bindcode-v1.md) protocol. The admin issues a short-lived bind code; staff paste or scan it in the app (**Settings → Advanced → Connect to enterprise server**); from then on those members can run their assistant on *your* infrastructure.
-
-Three things worth knowing before you enable it:
-
-- **The LLM provider is yours.** Bound members chat through this instance's `llm_gateway` — whatever provider you configured (DeepSeek, Ollama, or any self-hosted OpenAI-compatible gateway). Nothing in the plugin points to any hosted service, and there is no preset channel.
-- **Binding is an identity relation, not lock-in.** Members can switch back to personal mode (their own models, their on-device memory) at any time; unbinding changes nothing on their device (protocol §4). The server never holds staff personal data, and unbind deletes nothing.
-- **Blast radius is small.** A member-level `access_token` only unlocks the plugin's chat endpoint — never the admin API. Bind codes are HMAC-signed, short-lived, use-capped and revocable; the public endpoints are rate-limited (10 req/min per product token).
-
-Quick start:
-
-```bash
-# 1) enable in config/deployment.yaml (org_relay.enabled: true + product_tokens), then:
-curl -X POST :8500/api/v1/plugins/ddw-org-relay/admin/orgs      -H "Authorization: Bearer $DDW_ACCESS_TOKEN"      -H 'Content-Type: application/json' -d '{"name":"Acme Clinic"}'
-curl -X POST :8500/api/v1/plugins/ddw-org-relay/admin/orgs/<org_id>/bindcode      -H "Authorization: Bearer $DDW_ACCESS_TOKEN"      -H 'Content-Type: application/json' -d '{"ttl_min":15,"max_uses":50}'
-# 2) staff app: Settings → Advanced → Connect to enterprise server → paste code
-```
-
-Full endpoint list, config reference and security notes: [plugins/ddw_org_relay/README_EN.md](plugins/ddw_org_relay/README_EN.md).
-
----
-
-## Commercial & Support
-
-**deepDDW is free and fully featured forever.** The paid tiers exist for exactly two things: *convenience* (hosting, zero-ops) and *enterprise collaboration* (permissions, audit, compliance). Every core capability ships in the open-source build — there are no feature gates and no "Pro-only" paywalls, period.
-
-| Tier | Price | Best for | What you get |
-| --- | --- | --- | --- |
-| **Open Source** | Free forever | Individual developers, self-hosters | MIT licensed, full features, no feature gates |
-| **Pro Cloud** | ¥19/mo or ¥199/yr | People who'd rather not run it | Cloud-hosted memory & knowledge base, zero ops, managed multi-device sync, daily backups |
-| **Founder License** (lifetime) | ¥499, one-time | Early supporters | Lifetime Pro. **Capped at the first 100 licenses — once they're gone, they're gone** |
-| **Enterprise** | From ¥9,800/yr | Teams and companies | Multi-user & permissions, SSO, audit logs, private-deployment support (remote), commercial license letter, 24h priority response |
-
-- Enterprise on-site deployment & implementation: ¥3,000 per engagement.
-- VAT invoices available for corporate purchases.
-- Sales & support: [GitHub Issues](https://github.com/ccch713/deepddw/issues).
-
-### Pro Cloud — skip the ops
-
-Everything you'd get from self-hosting, running in the cloud: hosted memory and knowledge base, managed multi-device sync, automatic daily backups. ¥19/month, or ¥199/year (works out to about ¥16.6/mo). Built for people who want the full deepDDW experience without owning a server.
-
-### Founder License — lifetime, 100 seats only
-
-Pay ¥499 once, keep Pro for life. A permanent thank-you to early supporters — **100 seats, first come first served, never restocked.** When the last seat sells, this tier is retired for good. No second wave.
-
-### Enterprise — built for teams
-
-User management and permissions, SSO, audit logs, remote private-deployment support, and a formal commercial license letter — the document your procurement and legal teams actually need. 24-hour priority response included. On-site deployment and implementation available at ¥3,000 per engagement.
-
-### Sponsor — buy the author a coffee
-
-Don't need any of the paid tiers? Totally fine — deepDDW stays free either way. Star the repo — it means a lot.
+| 🔐 Local-only data | Knowledge base & memory stay on your server, never leave the network |
+| 🏠 LAN password-free | Optional (opt-in): LAN requests skip the token — **OFF by default** (`DDW_LAN_BYPASS=1`; trusted LANs only) |
+| 🌐 External access | Optional token gate (short-code supported); unauthorized → 401 |
+| 🛡️ DSH secure binding | DSH stays bound to localhost; the gateway exposes it — official security design preserved |
+| 🧾 Audit-friendly | View-only office API, whitelisted phrases only; backup/restore with validated integrity checks |
 
 ---
 
 ## Roadmap
 
-Only items actually planned or already delivered are listed here.
+Only items actually planned or already delivered are listed.
 
-**Delivered:**
-- [x] **Multi-device on LAN (0.2.0)** — device identity/online registry, status panel, rate limiting, SQLite WAL concurrency (up to 20 devices)
-- [x] **Workspace isolation (P1-1)** — per-workspace memory/knowledge scoping at the gateway (default `shared`, backward compatible)
-- [x] **Session resume across devices (P1-3)** — "recent sessions" summaries (up to 5) with a continue button
-- [x] **Optional TLS (P1-2)** — one-command self-signed cert; external access via Caddy/Nginx reverse proxy (see `docs/tls.md`)
-- [x] **Backup / restore API (P2-1)** — one-click backup, downloadable; validated restore with `.pre-restore` safety copy
-- [x] **Load-test report (P2-2)** — 5/10/20 devices: 0% errors, P95 ≤ 126 ms, no `database is locked` (see `docs/load-report.md`)
-- [x] **Version / upgrade check (P2-3)** — `/api/v1/version` probes the latest release (1h cache); launcher shows upgrade banner
-- [x] **Docker one-click deployment** — `docker compose -f deepddw-compose.yml up -d --build` (verified on a real macOS arm64 host: core + SearXNG containers up, health/MCP/chat end-to-end green)
-- [x] **Session → document auto-ingest** — conversations saved to the knowledge base via `ddw.docs.save` / `ddw.session.docs` MCP tools + REST API, searchable and traceable per session
-- [x] **Vector search enhancement** — hybrid retrieval (SQLite FTS5/LIKE + LanceDB, RRF fusion; optional, degrades to keyword-only when LanceDB is absent)
-- [x] **Windows packaging** — PyInstaller one-dir build via the `windows-build` CI workflow, distributed as an Actions artifact, verified in release v0.1.0 (see `docs/windows-packaging.md`)
-- [x] **Reflection & consolidation (LLM polish)** — daily reflection follows a style guide (auto/professional/casual), enforces a progress/issues/tomorrow structure and avoids repeating the previous day; consolidation skips logging when the LLM judges the conversation valueless
-- [x] **Organization binding, bindcode-v1 server (optional plugin)** — act as an enterprise backend for the DDW AI Assistant app family: HMAC-signed short-lived bind codes, public bind/unbind/me endpoints (product-token + rate limit), member-level tokens for an OpenAI-compatible chat endpoint backed by your own llm_gateway providers (see `plugins/ddw_org_relay/`)
-- [x] **Memory search quality** — results ranked by relevance score (hit-count × layer weight: user > notes > reflection > logs, plus freshness) instead of insertion order; keyword-expansion cache expiry tested
+**Delivered highlights** (full history in git log):
+
+- Multi-device on LAN — device registry, status panel, rate limiting, SQLite WAL concurrency (up to 20 devices, load-tested: P95 ≤ 126 ms, 0% errors)
+- Workspace isolation · cross-device session resume · optional TLS · backup/restore API · version/upgrade check
+- Docker one-command deployment (verified end-to-end) · Windows exe via CI
+- Session → document auto-ingest · hybrid vector search · memory relevance ranking
+- Organization binding (optional `bindcode-v1` plugin) — act as the enterprise backend for assistant apps; HMAC-signed short-lived bind codes; member tokens never touch the admin API
+- Virtual office (view-only activity visualization)
+
+**Planned:**
+
+- [ ] Scheduled staff routines — cron-driven roles (watch this space)
+- [ ] One-line `curl … | bash` installer
+- [ ] Full English documentation pass (some docs/UI strings still reference the legacy `deepddw` codename)
+- [ ] Managed cloud (overseas regions)
+- [ ] Community Discord
 
 ---
 
-*deepDDW — enterprise-grade capability, open-sourced for everyone.*
+## Commercial & Support
+
+**Staffwright is free and fully featured forever.** Open source is the product — there are no feature gates and no "Pro-only" paywalls in this repository.
+
+Paid convenience tiers (managed cloud hosting, enterprise collaboration: SSO, audit logs, private-deployment support) are being prepared for international availability. In the meantime: questions, deployment help and enterprise inquiries → [GitHub Discussions](https://github.com/ccch713/staffwright/discussions) or open an issue.
+
+---
+
+## Community
+
+- 💬 [Discussions](https://github.com/ccch713/staffwright/discussions) — questions, show & tell, deployment help
+- 🐛 [Issues](https://github.com/ccch713/staffwright/issues) — bug reports & feature requests
+- 🤝 Contributing: see [CONTRIBUTING.md](CONTRIBUTING.md)
+
+---
+
+## License
+
+| Component | License |
+|-----------|---------|
+| Staffwright (gateway, memory, knowledge base, docs portal, office) | MIT |
+| DeepSeek Harness (DSH engine, source untouched) | MIT |
+| SearXNG (optional aggregate search) | AGPL-3.0 (server-side HTTP, exemption assessed) |
+
+See [`NOTICE`](NOTICE) for full third-party attribution.

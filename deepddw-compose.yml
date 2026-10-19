@@ -1,18 +1,19 @@
-# deepDDW 0.1 · 一键部署（全新服务器 docker compose up）
-# 用法:
-#   cp .env.example .env && 填写 DDW_ACCESS_TOKEN
+# Staffwright · one-command deployment (fresh server: docker compose up)
+# Usage:
+#   cp .env.example .env   and set DDW_ACCESS_TOKEN
 #   docker compose -f deepddw-compose.yml up -d --build
-# 访问: http://<host>:8500/  （PWA 启动页 → 填 Token → 工作台）
+# Open: http://<host>:8500/  (launcher → enter token → workbench)
 #
-# 组件覆盖: 网关（FastAPI+MCP 双协议+Token 门禁）、知识库/记忆（SQLite）、
-#           PWA（/ui）、聚合搜索（SearXNG 独立服务）、DSH 引擎（见下方注释）
+# Components: gateway (FastAPI + MCP dual protocol + token gate),
+#             knowledge base / memory (SQLite), static UI (/ui),
+#             aggregate search (SearXNG sidecar), DSH engine (see comment below)
 services:
   ddw-core:
     build: .
     container_name: deepddw-core
     restart: unless-stopped
     environment:
-      DDW_ACCESS_TOKEN: ${DDW_ACCESS_TOKEN:?请在 .env 中配置 DDW_ACCESS_TOKEN}
+      DDW_ACCESS_TOKEN: ${DDW_ACCESS_TOKEN:?DDW_ACCESS_TOKEN must be set in .env}
       DDW_DEEPSEEK_API_KEY: ${DDW_DEEPSEEK_API_KEY:-}
       SEARXNG_URL: http://searxng:8080
       DDW_ENV: ${DDW_ENV:-development}
@@ -31,7 +32,7 @@ services:
       retries: 3
       start_period: 15s
 
-  # SearXNG 聚合搜索（白名单组件；可选——ddw-core 不依赖其可用性）
+  # SearXNG aggregate search (whitelisted component; optional — ddw-core does not require it to be reachable)
   searxng:
     image: searxng/searxng:latest
     container_name: deepddw-searxng
@@ -41,9 +42,9 @@ services:
     environment:
       SEARXNG_BASE_URL: http://127.0.0.1:8888/
 
-  # DSH 引擎（DeepSeek Harness，官方 MIT）：以子进程/独立服务方式拉起，
-  # 通过 MCP streamable-http 接入本网关（见 README「DSH 接入」）。
-  # 示例（需先 npm i -g @deepseek-ai/dsh）：
+  # DSH engine (DeepSeek Harness, official MIT): launched as a subprocess/sidecar,
+  # wired into this gateway via MCP streamable-http (see README).
+  # Example (requires npm i -g @deepseek-ai/dsh on the host or a custom image):
   # dsh:
   #   image: node:22-slim
   #   container_name: deepddw-dsh

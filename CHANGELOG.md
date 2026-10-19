@@ -1,159 +1,24 @@
 # Changelog
 
-All notable changes to deepDDW are documented in this file.
-
-The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+All notable changes to Staffwright are documented in this file. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). The project was previously distributed as *deepddw*; early entries live in the git history.
 
 ## [0.8.0] - 2026-10-18
 
-### Added — 虚拟办公室（virtual-office，view-only 状态可视化）
+### Added — Virtual office (view-only activity visualization)
 
-- **`/ui/office.html`**：像素风虚拟办公室——deepDDW 的每个子系统都是一位"虚拟员工"（门卫大白/接待小深/记忆管家/藏书员/计量员/蒸馏师/备份员/网关中继），真实活动驱动动画：设备心跳、对话消息、记忆写入、知识库入库、LLM 用量、备份时间、组织绑定
-  - 渲染核心 `frontend/assets/virtual-office.js`：单文件、零依赖、全程序化像素绘制（无任何第三方图片/字体/音频资产，规避版权风险）；演示模式内置剧本，可作截图/宣传素材
-  - `GET /api/v1/office/state`（Token 门禁）：只读聚合，**view-only 白名单透出**——响应只含岗位名与统计短语，任何文档内容/记忆 value/对话原文不出此端点；缺表缺库自动容错为待命态，绝不 500
-  - 30 分钟无新事件的员工自动回落 idle（拒绝"永远在打字"的假在岗）；LLM 失败 >3 次顶部横幅告警
-- 落地页导航新增"虚拟办公室"入口
+- **`/ui/office.html`**: a pixel-art virtual office where every Staffwright subsystem appears as a staff member (gateway doorman, chat receptionist, memory butler, librarian, meter clerk, distiller, backup clerk, relay). Real activity drives the animations: device heartbeats, chat messages, memory writes, knowledge-base ingests, LLM usage, backup timestamps, organization bindings.
+  - Render core `frontend/assets/virtual-office.js`: single file, zero dependencies, fully programmatic pixel drawing (no third-party images/fonts/audio, no copyright exposure); a built-in demo script doubles as screenshot/promo material.
+  - `GET /api/v1/office/state` (token-gated): read-only aggregation with **view-only whitelisted exposure** — the response contains job titles and statistics phrases only; no document contents, memory values, or chat transcripts ever leave this endpoint. Missing tables/stores degrade gracefully to the standby state (never a 500).
+  - Staff members with no new events for 30 minutes fall back to idle (no "forever typing" fakery); LLM failures >3 times raise a top banner alert.
+- Launcher navigation adds a "Virtual Office" entry.
 
-## [0.7.0] - 2026-10-10
+## Earlier releases (summary)
 
-### Added — 组织连接（bindcode-v1 服务端，默认关闭）
+- **Multi-device on LAN** — device identity & online registry, live status panel, per-token/IP rate limiting, SQLite WAL + write-lock concurrency (20 concurrent writers verified)
+- **Team features** — workspace isolation, cross-device session resume, team distillation, scope promote, incognito sessions, retrieval health
+- **Ops** — one-click backup/restore with integrity validation, optional TLS, Docker one-command deploy (verified end-to-end), version/upgrade check, Windows exe packaging via CI
+- **Retrieval** — session → document auto-ingest, hybrid vector search (SQLite FTS5/LIKE + LanceDB, RRF fusion), memory relevance ranking (layer weight × hits × freshness)
+- **Organization binding** — optional `bindcode-v1` server plugin (HMAC-signed short-lived bind codes; member-level tokens for an OpenAI-compatible chat endpoint backed by your own LLM gateway)
+- **LLM workflows** — daily reflection with style guides; consolidation skips logging when the conversation is judged valueless
 
-- **`plugins/ddw_org_relay`**：本实例可作为 DDW AI 助手系列 App 的组织后端（开放协议 `docs/组织连接协议-bindcode-v1.md` 随仓公开）
-  - 公网三件 `POST /api/v1/relay/org/pub/{bind,unbind}`、`GET .../me`：Bearer 产品令牌（可多枚，兼容协议 §3 `X-Product-Key` 头）+ 每令牌 10 req/min 限速（429 + Retry-After）
-  - 绑定码 `DDWORG-<b64url(org_id|exp_ts|nonce)>.<hmac16>`：HMAC 常数时间比较、时效（410）、用次（409）、吊销（404）、伪造（403）；org_secret Fernet 加密落盘且支持轮换（旧码时效内仍有效）
-  - 成员级 `access_token`（`orgm_` 前缀）直连本实例 OpenAI 兼容端点 `POST /api/v1/plugins/ddw-org-relay/chat/completions`（支持 stream）；解绑/吊销/组织停用即失效；组织级请求配额可配
-  - 管理端复用实例静态 Token 门禁（建组织/签码/吊销/轮换/停用/配额/解绑/用量对账），不引入用户账号体系；LLM 供给完全走部署者自配的 `llm_gateway` 供应商
-  - 日志与流水仅元数据（协议 §6）；独立库 `data/org_relay.db`
-- **修复插件路由遮蔽**：插件在 lifespan 挂载晚于 `/api/{path:path}` DSH 反代 catch-all，按注册顺序匹配会被吞掉——`sdk/plugin_base.register()` 现将插件路由前插，修复全部插件的 HTTP 端点可达性
-
-## [0.6.1] - 2026-09-17
-
-### Added — 迁移来源适配器
-
-- **`format: "claude-code"`** — 直接吃 Claude Code 的 `CLAUDE.md` / `MEMORY.md`：`- **key**: value` 加粗要点 → user 偏好层、`## 分段` → notes 层；H1 文件标题与 `- [ ]` 任务勾选行自动跳过
-- **`format: "codex"`** — 吃 Codex CLI 的 `AGENTS.md`：分段与顶层约定 → notes 层（顶层内容归入 `instructions` 单条）
-- **`format: "auto"`** — 按内容探测 deepddw / generic / claude-code / codex / markdown，`dry_run` 预检响应新增 `format` 字段回显探测结果
-- 来源溯源：claude-code / codex 导入默认按来源命名空间隔离（`claude-code` / `codex`，显式指定 `namespace` 时优先），每行打 `import:<来源>` 标签
-
-## [0.6.0] - 2026-09-16
-
-> **社区「可治理」需求落地：迁移导入导出、作用域提升、无痕会话、检索健康、CJK 调优。**
-
-### Added — P0
-
-- **迁移导入器** `POST /api/v1/migration/import` — 支持 deepddw JSONL / generic JSONL / Markdown（MEMORY.md）→ 分层记忆；`dry_run` 预检
-- **开放导出** `POST /api/v1/migration/export` — JSONL / Markdown 导出 workspace 记忆（数据逃生舱）
-- **作用域提升** `POST /api/v1/scope/promote` — 私有 workspace 笔记/偏好提升到 shared 团队库；同 key 不同 value 自动入冲突队列
-- **冲突裁决** `GET /api/v1/scope/conflicts` + `POST .../resolve` — approve / reject / use_source / use_target
-- **无痕会话** `POST /api/v1/privacy/incognito` + chat `privacy: true` — 本会话不写记忆、不自动沉淀；MCP `ddw.memory.put` 同步拦截
-
-### Added — P1
-
-- **检索健康** `GET /api/v1/privacy/retrieval-health` — FTS5 / LanceDB / kb_search 显式探针，禁止静默降级
-- **注入预览** `GET /api/v1/privacy/injection-preview` — 可观测「此刻注入了什么」
-- **CJK 检索调优** — 中文 bigram 分词 + `DDW_MEMORY_MIN_SCORE` 相关性阈值
-
-### Tests
-
-- `tests/test_community_features.py` — 13 项：导入/导出/提升/冲突/无痕/健康/CJK
-
-## [0.5.1] - 2026-08-20
-
-> **修复了多用户设置面板无法加载、间歇性 API 请求失败、成员在线状态不准确三大问题。**
-
-### Fixed — 插件加载（面板无法显示）
-
-- **客户端 Bundle 未注册** — `ddw-teams-panel` 加入 web profile 的 `dsh.profile.bundles`，浏览器半区（client.js）得以加载
-- **插件依赖声明缺失** — `dsh.client.inject` 补全 5 个客户端服务依赖（runtime/connection/ui-slots/ui-settings/ui-sidebar）
-- **服务白名单缺失** — client.js `exports.inject` 恢复 `['slots']`（DSH 客户端 ctx 属性访问白名单，未声明即抛 `cannot get property "slots" without inject`）
-- **非法 ctx 访问** — 移除 `ctx.config` 直读（未注入属性禁止访问）
-- **网关地址错误** — BASE 由 `window.location.origin`（DSH web）修正为 deepDDW 网关 `http://127.0.0.1:8500`
-
-### Fixed — 运行稳定性（间歇性 Load failed）
-
-- **远程访问 CORS** — 新增 `DDW_CORS_EXTRA_ORIGINS` 配置，支持 https 远程访问入口
-- **keep-alive 连接复用** — 服务端 `--timeout-keep-alive 75`（默认 5 秒过短导致浏览器复用到已关闭连接）
-- **面板请求容错** — 4 个 API 各自独立 catch，单端点失败不再拖垮面板；关键请求失败自动重试 3 次
-- **面板刷新竞态** — refresh 保留旧数据仅置 loading，切回不闪烁空白
-
-### Fixed — 在线状态与数据
-
-- **成员长时间灰色** — 新增 30 秒设备心跳（deepDDW 在线判定窗口 60s，原仅页面加载注册一次）
-- **device_ids 空字符串污染** — member_id 为空时不再调用 identify；清理存量脏数据
-
-### Changed
-
-- 插件 package.json 加 `"type": "module"`（消除服务端 ESM 警告）
-- 建立 **tsdown 构建管线**（`src/client/index.ts` 权威源 → `lib/client.js`），消除手工转译漂移
-- 新增 `start.sh` 启动脚本 + launchd 开机自启
-
-## [0.5.0] - 2026-08-18
-
-> **"DSH for Teams" 架构重写 — 深度重构为 DSH 原生插件，实现多用户记忆/知识库隔离。**
-> 📌 **Listed in [awesome-deepseek-harness](https://github.com/0xsline/awesome-deepseek-harness#memory--knowledge)** (500+ stars DSH 生态导航，Memory & Knowledge 板块唯一多设备/团队方案)。
-
-### Changed — 架构重写
-
-- **纯 DSH Cordis 插件** — 删除独立 Launcher 页面，deepDDW 完全嵌入 DSH 作为原生插件；通过 DSH 设置面板「设置 → 多用户设置」管理，100% DSH 原生 UI（`--dsw-alias-*` 语义 Token，零自定义 CSS）
-- **首次使用引导** — 首次打开 DSH 弹出「选择使用模式」：一人多设备（8GB 内存）/ 家庭多人（16GB，5 人以下）/ 小团队协作（32GB+，20 人以内）
-- **成员管理三页签** — 活跃成员（🟢/⚪在线状态）/ 已吊销（可多选提取记忆到团队共享空间）/ 已删除
-- **成员识别安全模式** — 手动输入成员名称验证绑定（非列表选择，防冒充）
-- **设备心跳注册** — 每次页面加载自动注册设备心跳，确保在线状态实时准确
-- **客户端构建管线** — 引入 tsdown，TypeScript 源码 → `__ModuleLoader__` 格式客户端 bundle
-- **成员记忆提取** — 新增 `POST /api/v1/member/extract`（多选 → 提取到团队共享空间 → 删除）
-
-### Fixed
-
-- 客户端重构为纯 DSH 插件（React 组件 + __ModuleLoader__），消除 UI 风格不一致、白屏、手动填字段问题
-- 在线状态显示修复（设备心跳注册机制）
-- 成员名显示修复（去掉 React span 包裹导致的 [object Object]）
-
-### ⚠️ IMPORTANT — 安装前必读
-
-deepDDW 实现了独立的记忆体与知识库隔离机制。安装前请：① 备份现有记忆体与知识库；② 卸载/停用其他记忆或知识库插件；③ 避免同时运行导致数据冲突。
-
-### Planned for v0.6.0
-
-- 英文/中文多语言菜单支持（跟随 DSH locale 系统）
-- 设置面板自定义图标（当前为默认齿轮图标）
-
-## [0.3.0] - 2026-08-17
-
-### Fixed
-
-- **DEF-003** — `POST /api/v1/backup/restore` now returns **400** (client error) for invalid backup files (non-SQLite / failed integrity check) instead of 500; the live DB and the `.pre-restore` safety copy are never touched.
-- **DEF-004** — `/api/v1/backup/create` no longer exposes the server's absolute path — only the filename is returned.
-- **DEF-002** — `token_gate.py` docstring now matches behavior: LAN password-free is **off by default** (explicit opt-in via `DDW_LAN_BYPASS=1`).
-
-### Changed
-
-- **Reflection & consolidation (LLM polish)** — daily reflection follows a style guide (auto / professional / casual), enforces a progress / issues / tomorrow structure and avoids repeating the previous day; consolidation skips logging when the LLM judges the conversation valueless.
-- **Memory search quality** — results are ranked by relevance score (hit-count × layer weight: user > notes > reflection > logs, plus freshness for recent logs) instead of insertion order; keyword-expansion cache expiry is tested.
-
-## [0.2.0] - 2026-08-17
-
-### Added — Multi-device on LAN (0.2.0)
-
-- **Device identity & online registry** — each browser persists a `device_id` (localStorage) with a friendly name; reconnects keep the same identity; `/api/v1/status` shows online devices, active WebSockets, request counts, DB size and version.
-- **Gateway rate limiting** — sliding window per Token + per IP (default 60 req/min/token, global cap → 503 overload protection), stdlib-only, configurable via `security.rate_limit.*` / `DDW_RATE_LIMIT_*` env.
-- **SQLite concurrency hardening** — WAL + `busy_timeout=5000` + `synchronous=NORMAL` on every connection, plus a process-wide write lock for cross-table transactions (20 concurrent writers verified, no `database is locked`).
-- **Workspace isolation (P1-1)** — devices pick a workspace (default `shared`); memory/logs and MCP memory tools are scoped per workspace, docs filtered by slug prefix; legacy clients unaffected.
-- **Session resume across devices (P1-3)** — recent session summaries (up to 5) with a "continue" button; resume a conversation on another device.
-- **Optional TLS (P1-2)** — one-command self-signed certificate (`scripts/gen_self_signed_cert.sh`, 1-year), enabled via `security.tls.*`; external access via Caddy/Nginx reverse proxy (see `docs/tls.md`).
-- **Backup / restore API (P2-1)** — one-click backup via `POST /api/v1/backup/create`, downloadable; restore validates the SQLite file (header + integrity check) and keeps a `.pre-restore` safety copy before replacing the main DB.
-- **Load-test tooling & report (P2-2)** — re-runnable async load script (`scripts/load_test/load_test.py`); measured 5/10/20 devices → 0% errors, P95 ≤ 126 ms, ~600 RPS, no `database is locked` (see `docs/load-report.md`).
-- **Version / upgrade check (P2-3)** — `/api/v1/version` reports `latest_version` / `update_available` (GitHub releases, 1h cache, offline-degraded); launcher shows an upgrade banner.
-
-### Changed
-
-- Version bumped 0.1.0 → 0.2.0.
-
-## [0.1.0] - 2026-08-16
-
-### Added
-
-- **Memory subsystem** — layered memory (user rules / project notes / daily logs / daily reflections + archive), automatic `<memory_system>` injection (budget-capped), LLM keyword expansion, AI distillation & daily reflection (graceful degradation).
-- **Knowledge base** — hybrid vector + keyword retrieval (LanceDB + SQLite FTS5, RRF fusion; keyword-only fallback), automatic RAG (≤3 hits × 600 chars), session → document auto-ingest.
-- **Deployment** — Docker one-click (`deepddw-compose.yml`), Windows standalone exe (PyInstaller via CI), `install.sh` one-command install.
-- **Security** — Token gate (Bearer / `X-DDW-Token`, fail-fast), one-time 60s scan-to-pair codes, LAN bypass off by default, CORS tightening, cross-site WebSocket rejection.
-- **CI** — pytest full suite + ruff (F/E9 zero-tolerance) on every push; windows-build workflow.
+Full history: `git log`.
