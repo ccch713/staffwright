@@ -89,6 +89,8 @@ if [ "$WITH_DSH" = true ]; then
     if [ -z "$DSH_BIN" ]; then
         if command -v npm >/dev/null 2>&1; then
             log "dsh not found — installing the official DSH engine (npm i -g @deepseek-ai/dsh)..."
+            # npm ≥11 blocks postinstall scripts by default; dsh needs native modules (koffi, node-pty)
+            npm config set allow-scripts=@deepseek-ai/dsh-subprocess-local,koffi,node-pty,@google/genai,protobufjs --location=user 2>/dev/null || true
             npm i -g @deepseek-ai/dsh && DSH_BIN="$(command -v dsh || true)" \
                 || log "⚠️  dsh install failed — install it manually (npm i -g @deepseek-ai/dsh) and re-run with --with-dsh"
         else
