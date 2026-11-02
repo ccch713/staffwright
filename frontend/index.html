@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="deepDDW — 开源个人 AI 底座：DSH 引擎 + 知识库 + 记忆 + 网关 + MCP 双协议。">
-<title>deepDDW · 开源个人 AI 底座</title>
+<meta name="description" content="Staffwright — open-source, self-hosted AI staff for small teams: DSH engine + knowledge base + shared memory + token-gated gateway + dual-protocol MCP.">
+<title>Staffwright · Your Small Team's AI Staff</title>
 <link rel="icon" type="image/svg+xml" href="/ui/assets/logo-ju.svg">
 <style>
 :root{
@@ -14,7 +14,7 @@
   --border:#233052;--border-hover:#00e5ff;
 }
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:var(--bg-base);color:var(--text-primary);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;line-height:1.7}
+body{background:var(--bg-base);color:var(--text-primary);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;line-height:1.7}
 .wrap{max-width:1000px;margin:0 auto;padding:0 24px}
 .nav{background:rgba(5,8,22,.85);backdrop-filter:blur(18px);border-bottom:1px solid var(--border)}
 .nav .wrap{display:flex;align-items:center;justify-content:space-between;height:60px}
@@ -40,32 +40,32 @@ footer{border-top:1px solid var(--border);padding:26px 0;text-align:center;color
 </head>
 <body>
 <nav class="nav"><div class="wrap">
-  <div class="nav-brand">deep<b>DDW</b></div>
+  <div class="nav-brand">Staff<b>wright</b></div>
   <div class="nav-links">
-    <a href="/ui/office.html">虚拟办公室</a>
-    <a href="/ui/deepddw-launcher.html">启动</a>
-    <a href="/ui/docs/index.html">文档中心</a>
+    <a href="/ui/office.html">Virtual Office</a>
+    <a href="/dsh/">Workbench</a>
+    <a href="/ui/docs/index.html">Docs</a>
   </div>
 </div></nav>
 
 <div class="hero"><div class="wrap">
-  <h1>deep<b>DDW</b> 开源个人 AI 底座</h1>
-  <p>由 DDW AI Hub 6.0 裁剪而来的开源一体包：DSH 引擎 · SQLite 知识库 · 轻量记忆 · 网关 Token 门禁 · MCP 双协议（streamable-http + 经典）。无账号体系，静态访问 Token 即全部门禁。</p>
+  <h1>Staff<b>wright</b> — your small team's AI staff</h1>
+  <p>An open-source, self-hosted workstation: DSH engine · SQLite knowledge base · shared long-term memory · token-gated gateway · dual-protocol MCP (streamable-http + classic). No accounts — a static access token is the only gate.</p>
   <div class="cta">
-    <a class="primary" href="/ui/deepddw-launcher.html">🚀 进入启动器</a>
-    <a class="ghost" href="/ui/docs/index.html">📚 文档中心</a>
+    <a class="primary" href="/dsh/">🚀 Open Workbench</a>
+    <a class="ghost" href="/ui/docs/index.html">📚 Documentation</a>
   </div>
 </div></div>
 
 <div class="wrap grid">
-  <div class="card"><div class="ic">🛡️</div><h3>Token 门禁</h3><p>全部 MCP 端点与网关 API 过静态访问 Token（Bearer / X-DDW-Token），缺失或无效即 401；工具按白名单分层过滤，商业插件工具绝不注册。</p></div>
-  <div class="card"><div class="ic">🔌</div><h3>MCP 双协议</h3><p>streamable-http（2025-03-26）与经典端点（2024-11-05）双轨并存，工具集合一致；FastMCP 在插件加载完成后重建，插件工具为真实实现。</p></div>
-  <div class="card"><div class="ic">📚</div><h3>知识库 + 记忆</h3><p>SQLite 个人级知识库（FTS5/LIKE 检索）与轻量长期记忆，对话 / 检索 REST API + MCP 工具双入口；断网或存储故障自动降级，不阻塞主流程。</p></div>
-  <div class="card"><div class="ic">📱</div><h3>手机浏览器 PWA</h3><p>启动页填地址 + Token 过网关校验后进入工作台；Token 仅存本机会话，iframe 内不携带明文 Token。一键加装桌面 / 主屏。</p></div>
-  <div class="card"><div class="ic">🔁</div><h3>插件框架</h3><p>PluginBase 装载框架 + 热加载运行时保留；插件目录只含白名单组件（ddw-docs-portal / ddw-searxng），可自行扩展。</p></div>
-  <div class="card"><div class="ic">♻️</div><h3>许可证合规</h3><p>DSH（MIT）与各组件（Apache-2.0 / MIT / BSD / SQLite Public Domain）声明齐全；GPL 红线、商业组件零引入。</p></div>
+  <div class="card"><div class="ic">🛡️</div><h3>Token gate</h3><p>Every MCP endpoint and gateway API sits behind a static access token (Bearer / X-DDW-Token); missing or invalid means 401. Tools are filtered through whitelist tiers — commercial plugin tools never register.</p></div>
+  <div class="card"><div class="ic">🔌</div><h3>Dual-protocol MCP</h3><p>streamable-http (2025-03-26) and the classic endpoint (2024-11-05) run side by side with an identical toolset; FastMCP rebuilds after plugins load, so plugin tools are real implementations.</p></div>
+  <div class="card"><div class="ic">📚</div><h3>Knowledge base + memory</h3><p>A personal-grade SQLite knowledge base (FTS5/LIKE retrieval) plus lightweight long-term memory, reachable from both REST APIs and MCP tools; degrades gracefully on offline or storage faults and never blocks the main flow.</p></div>
+  <div class="card"><div class="ic">📱</div><h3>Phone-ready PWA</h3><p>Open the workbench in any mobile browser, then add it to your home screen; the token stays in the local session and never travels inside iframes.</p></div>
+  <div class="card"><div class="ic">🔁</div><h3>Plugin framework</h3><p>PluginBase loader with a hot-reload runtime; the plugin directory ships whitelisted components only (ddw-docs-portal / ddw-searxng) and extends freely.</p></div>
+  <div class="card"><div class="ic">♻️</div><h3>License hygiene</h3><p>DSH (MIT) and every bundled component (Apache-2.0 / MIT / BSD / SQLite public domain) fully declared; zero GPL, zero commercial components.</p></div>
 </div>
 
-<footer><div class="wrap">deepDDW 0.1 · 开源（DSH MIT + 各组件许可证） · 与商业仓物理隔离</div></footer>
+<footer><div class="wrap">Staffwright · Open source (DSH MIT + component licenses)</div></footer>
 </body>
 </html>

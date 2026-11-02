@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#0a0f24">
 <link rel="manifest" href="/ui/manifest.webmanifest">
 <link rel="icon" type="image/svg+xml" href="/ui/assets/logo-ju.svg">
-<title>deepDDW 工作台</title>
+<title>Staffwright Workbench</title>
 <style>
 :root{
   --bg-base:#050816;--bg-page:#0a0f24;--bg-card:#111a3a;--bg-input:#0d1330;
@@ -14,7 +14,7 @@
   --brand:#00e5ff;--accent-green:#00ff9d;--accent-orange:#ffab40;--accent-purple:#b388ff;
   --border:#233052;--danger:#ff5c5c;
 }
-/* P2-30：跟随系统亮/暗模式 */
+/* P2-30: follow system light/dark mode */
 @media (prefers-color-scheme: light) {
   :root{
     --bg-base:#f5f7fa;--bg-page:#ffffff;--bg-card:#f0f3f8;--bg-input:#fafbfd;
@@ -25,7 +25,7 @@
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{height:100%}
-body{background:var(--bg-page);color:var(--text-primary);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;display:flex;flex-direction:column}
+body{background:var(--bg-page);color:var(--text-primary);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;display:flex;flex-direction:column}
 header{background:var(--bg-base);border-bottom:1px solid var(--border);padding:14px 16px calc(12px + env(safe-area-inset-top));display:flex;align-items:center;gap:10px}
 header img{width:26px;height:26px}
 header h1{font-size:16px;font-weight:700}
@@ -55,75 +55,75 @@ nav button.active{color:var(--brand)}
 <body>
 <header>
   <img src="/ui/assets/logo-ju.svg" alt="">
-  <h1>deepDDW 工作台</h1>
-  <span class="badge" id="status">未连接</span>
+  <h1>Staffwright Workbench</h1>
+  <span class="badge" id="status">Not connected</span>
 </header>
 
 <main>
-  <!-- 对话 -->
+  <!-- Chat -->
   <section class="panel" id="panel-chat">
     <div class="card">
-      <h2>💬 对话</h2>
-      <textarea id="chat-input" placeholder="输入消息，Enter 发送"></textarea>
-      <div class="row"><button class="btn" id="chat-send">发送</button><button class="btn ghost" id="chat-clear" type="button">清空</button></div>
-      <div class="out" id="chat-out">（LLM 网关未配置 Key 时会降级提示，不影响使用）</div>
+      <h2>💬 Chat</h2>
+      <textarea id="chat-input" placeholder="Type a message, Enter to send"></textarea>
+      <div class="row"><button class="btn" id="chat-send">Send</button><button class="btn ghost" id="chat-clear" type="button">Clear</button></div>
+      <div class="out" id="chat-out">(If no LLM key is configured, replies fall back to a notice — everything else still works)</div>
     </div>
   </section>
 
-  <!-- 知识库 -->
+  <!-- Knowledge base -->
   <section class="panel hidden" id="panel-kb">
     <div class="card">
-      <h2>📚 知识库检索</h2>
-      <input id="kb-q" placeholder="检索词，如：部署">
-      <div class="row"><button class="btn" id="kb-search">检索</button></div>
+      <h2>📚 Knowledge Search</h2>
+      <input id="kb-q" placeholder="Search terms, e.g. deployment">
+      <div class="row"><button class="btn" id="kb-search">Search</button></div>
       <div id="kb-out"></div>
     </div>
     <div class="card">
-      <h2>➕ 新增文档</h2>
-      <input id="kb-title" placeholder="标题">
-      <textarea id="kb-content" placeholder="正文内容"></textarea>
-      <div class="row"><button class="btn" id="kb-add">入库</button><button class="btn ghost" id="kb-add-close" type="button">收起</button></div>
+      <h2>➕ New Document</h2>
+      <input id="kb-title" placeholder="Title">
+      <textarea id="kb-content" placeholder="Content"></textarea>
+      <div class="row"><button class="btn" id="kb-add">Add</button><button class="btn ghost" id="kb-add-close" type="button">Hide</button></div>
       <div class="msg" id="kb-msg"></div>
     </div>
   </section>
 
-  <!-- 记忆 -->
+  <!-- Memory -->
   <section class="panel hidden" id="panel-mem">
     <div class="card">
-      <h2>🧠 记忆写入</h2>
-      <input id="mem-key" placeholder="key，如：preference">
-      <textarea id="mem-value" placeholder="记忆内容"></textarea>
-      <div class="row"><button class="btn" id="mem-put">保存</button></div>
+      <h2>🧠 Save Memory</h2>
+      <input id="mem-key" placeholder="key, e.g. preference">
+      <textarea id="mem-value" placeholder="What to remember"></textarea>
+      <div class="row"><button class="btn" id="mem-put">Save</button></div>
       <div class="msg" id="mem-msg"></div>
     </div>
     <div class="card">
-      <h2>🔍 记忆检索</h2>
-      <input id="mem-q" placeholder="检索词">
-      <div class="row"><button class="btn" id="mem-search">检索</button></div>
+      <h2>🔍 Memory Search</h2>
+      <input id="mem-q" placeholder="Search terms">
+      <div class="row"><button class="btn" id="mem-search">Search</button></div>
       <div id="mem-out"></div>
     </div>
   </section>
 
-  <!-- 文档 -->
+  <!-- Docs -->
   <section class="panel hidden" id="panel-docs">
     <div class="card">
-      <h2>📄 文档栏目检索</h2>
-      <input id="docs-q" placeholder="检索词，如：部署">
-      <div class="row"><button class="btn" id="docs-search">检索</button></div>
+      <h2>📄 Document Search</h2>
+      <input id="docs-q" placeholder="Search terms, e.g. deployment">
+      <div class="row"><button class="btn" id="docs-search">Search</button></div>
       <div id="docs-out"></div>
     </div>
     <div class="card">
-      <h2>🔗 文档中心</h2>
-      <div class="item">公开文档：<a href="/ui/docs/index.html" style="color:var(--brand)">deepDDW 文档中心</a></div>
+      <h2>🔗 Docs Center</h2>
+      <div class="item">Public docs: <a href="/ui/docs/index.html" style="color:var(--brand)">Staffwright documentation</a></div>
     </div>
   </section>
 </main>
 
 <nav>
-  <button data-panel="chat" class="active"><span class="ic">💬</span>对话</button>
-  <button data-panel="kb"><span class="ic">📚</span>知识库</button>
-  <button data-panel="mem"><span class="ic">🧠</span>记忆</button>
-  <button data-panel="docs"><span class="ic">📄</span>文档</button>
+  <button data-panel="chat" class="active"><span class="ic">💬</span>Chat</button>
+  <button data-panel="kb"><span class="ic">📚</span>Knowledge</button>
+  <button data-panel="mem"><span class="ic">🧠</span>Memory</button>
+  <button data-panel="docs"><span class="ic">📄</span>Docs</button>
 </nav>
 
 <script>
@@ -131,9 +131,9 @@ nav button.active{color:var(--brand)}
   "use strict";
   var token = null;
   try { token = sessionStorage.getItem("deepddw_token"); } catch (e) {}
-  // 启动器 iframe postMessage 通道（跨域场景，不经 URL）
-  // P2-23：校验 ev.origin——仅接受启动器所在源（同源或 deepDDW 网关源），
-  // 防任意嵌入 iframe 注入 token
+  // Launcher iframe postMessage channel (cross-origin, never via URL).
+  // P2-23: validate ev.origin — accept only the launcher's origin (same-origin or
+  // the Staffwright gateway origin), so an arbitrary iframe cannot inject a token.
   var ALLOWED_ORIGINS = (function () {
     try {
       var launcher = localStorage.getItem("deepddw_addr");
@@ -143,23 +143,24 @@ nav button.active{color:var(--brand)}
   })();
   window.addEventListener("message", function (ev) {
     if (ev.data && ev.data.type === "deepddw-token" && ev.data.token) {
-      if (ALLOWED_ORIGINS.indexOf(ev.origin) === -1) return;  // 拒绝陌生来源
+      if (ALLOWED_ORIGINS.indexOf(ev.origin) === -1) return;  // reject unknown origins
       token = ev.data.token;
-      setStatus("已连接");
+      setStatus("Connected");
       try { sessionStorage.setItem("deepddw_token", token); } catch (e) {}
     }
   });
   var statusEl = document.getElementById("status");
   function setStatus(s) { statusEl.textContent = s; }
-  // LAN 免密模式：无 Token 也可用（服务端内网自动放行），状态显示"免密连接"
-  if (token) setStatus("已连接");
+  // LAN password-free mode: usable without a token (the server auto-allows LAN
+  // requests); the badge then reads "LAN mode".
+  if (token) setStatus("Connected");
   else if (window.location.protocol === "http:" || window.location.protocol === "https:") {
-    // 同源/内网场景默认免密可用；先探测一次，成功则标记免密连接
+    // Same-origin / LAN default is password-free; probe once, mark LAN mode on success
     fetch("/api/v1/gateway/verify", { headers: headers() })
-      .then(function (r) { if (r.ok) { setStatus("免密连接"); window.__lanFree = true; } else { setStatus("待 Token"); } })
-      .catch(function () { setStatus("待 Token"); });
+      .then(function (r) { if (r.ok) { setStatus("LAN mode"); window.__lanFree = true; } else { setStatus("Token needed"); } })
+      .catch(function () { setStatus("Token needed"); });
   } else {
-    setStatus("待 Token");
+    setStatus("Token needed");
   }
 
   function headers() {
@@ -182,7 +183,7 @@ nav button.active{color:var(--brand)}
     });
   }
 
-  // ---- 面板切换 ----
+  // ---- panel switching ----
   document.querySelectorAll("nav button").forEach(function (b) {
     b.addEventListener("click", function () {
       document.querySelectorAll("nav button").forEach(function (x) { x.classList.remove("active"); });
@@ -192,21 +193,21 @@ nav button.active{color:var(--brand)}
     });
   });
 
-  // ---- 对话 ----
+  // ---- chat ----
   var chatInput = document.getElementById("chat-input");
   function sendChat() {
     var message = chatInput.value.trim();
     if (!message) return;
-    // LAN 免密模式：无 Token 直接发（服务端内网自动放行）；
-    // 外网无 Token 时服务端返回 401，届时再提示。
-    out("chat-out", "思考中…");
+    // LAN password-free mode: send without a token (server auto-allows LAN);
+    // from outside the LAN without a token the server answers 401 — prompt then.
+    out("chat-out", "Thinking…");
     fetch("/api/v1/chat/", {
       method: "POST", headers: headers(),
       body: JSON.stringify({ message: message }),
     }).then(function (r) {
       return r.json().then(function (d) {
         if (r.status === 401) {
-          out("chat-out", "未授权：请先通过启动页填写 Token（外网访问需要）");
+          out("chat-out", "Unauthorized: enter your access token first (required from outside the LAN)");
           return null;
         }
         return d;
@@ -215,14 +216,14 @@ nav button.active{color:var(--brand)}
       if (!d) return;
       var data = d.data || d;
       var content = (data.content || JSON.stringify(d)) || "";
-      // P2-24：只剥 "[deepDDW] " 提示前缀本身，保留其后正文（不再整行吞掉）
+      // P2-24: strip only the "[deepDDW] " notice prefix itself, keep the text after it
       content = content.replace(/^\[deepDDW\]\s*/gm, "");
       content = content.replace(/^\[llm-router\]\s*/gm, "");
-      out("chat-out", content.trim() || "（空回复）");
-    }).catch(function (e) { out("chat-out", "请求失败：" + e.message); });
+      out("chat-out", content.trim() || "(empty reply)");
+    }).catch(function (e) { out("chat-out", "Request failed: " + e.message); });
   }
   document.getElementById("chat-send").addEventListener("click", sendChat);
-  // P3-10/P2-30：清空当前对话（仅前端 state，DB 历史保留）
+  // P3-10/P2-30: clear the current conversation (frontend state only; DB history is kept)
   document.getElementById("chat-clear").addEventListener("click", function () {
     out("chat-out", "");
     chatInput.value = "";
@@ -231,7 +232,7 @@ nav button.active{color:var(--brand)}
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendChat(); }
   });
 
-  // ---- 知识库 ----
+  // ---- knowledge base ----
   document.getElementById("kb-search").addEventListener("click", function () {
     var q = document.getElementById("kb-q").value.trim();
     if (!q) return;
@@ -239,37 +240,37 @@ nav button.active{color:var(--brand)}
       .then(function (r) { return r.json(); })
       .then(function (d) {
         var items = (d.data && d.data.results) || [];
-        if (!items.length) { document.getElementById("kb-out").innerHTML = '<div class="item">未命中</div>'; return; }
+        if (!items.length) { document.getElementById("kb-out").innerHTML = '<div class="item">No matches</div>'; return; }
         appendItems("kb-out", items, function (it) {
           return "<b>" + esc(it.title) + "</b><div class='meta'>" + esc(it.excerpt) + "</div>";
         });
-      }).catch(function (e) { document.getElementById("kb-out").innerHTML = '<div class="item">失败：' + esc(e.message) + "</div>"; });
+      }).catch(function (e) { document.getElementById("kb-out").innerHTML = '<div class="item">Failed: ' + esc(e.message) + "</div>"; });
   });
   document.getElementById("kb-add").addEventListener("click", function () {
     var title = document.getElementById("kb-title").value.trim();
     var content = document.getElementById("kb-content").value.trim();
-    if (!title || !content) { document.getElementById("kb-msg").textContent = "标题与正文必填"; return; }
+    if (!title || !content) { document.getElementById("kb-msg").textContent = "Title and content are required"; return; }
     fetch("/api/v1/knowledge/documents", {
       method: "POST", headers: headers(),
       body: JSON.stringify({ title: title, content: content }),
     }).then(function (r) { return r.json(); }).then(function (d) {
-      document.getElementById("kb-msg").textContent = "入库成功 id=" + (d.data && d.data.id);
+      document.getElementById("kb-msg").textContent = "Added, id=" + (d.data && d.data.id);
       document.getElementById("kb-content").value = "";
-    }).catch(function (e) { document.getElementById("kb-msg").textContent = "失败：" + e.message; });
+    }).catch(function (e) { document.getElementById("kb-msg").textContent = "Failed: " + e.message; });
   });
 
-  // ---- 记忆 ----
+  // ---- memory ----
   document.getElementById("mem-put").addEventListener("click", function () {
     var key = document.getElementById("mem-key").value.trim();
     var value = document.getElementById("mem-value").value.trim();
-    if (!key || !value) { document.getElementById("mem-msg").textContent = "key 与内容必填"; return; }
+    if (!key || !value) { document.getElementById("mem-msg").textContent = "Key and value are required"; return; }
     fetch("/api/v1/memory/put", {
       method: "POST", headers: headers(),
       body: JSON.stringify({ key: key, value: value }),
     }).then(function (r) { return r.json(); }).then(function (d) {
-      document.getElementById("mem-msg").textContent = "已保存（id=" + (d.data && d.data.id) + "）";
+      document.getElementById("mem-msg").textContent = "Saved (id=" + (d.data && d.data.id) + ")";
       document.getElementById("mem-value").value = "";
-    }).catch(function (e) { document.getElementById("mem-msg").textContent = "失败：" + e.message; });
+    }).catch(function (e) { document.getElementById("mem-msg").textContent = "Failed: " + e.message; });
   });
   document.getElementById("mem-search").addEventListener("click", function () {
     var q = document.getElementById("mem-q").value.trim();
@@ -278,14 +279,14 @@ nav button.active{color:var(--brand)}
       .then(function (r) { return r.json(); })
       .then(function (d) {
         var items = (d.data && d.data.results) || [];
-        if (!items.length) { document.getElementById("mem-out").innerHTML = '<div class="item">未命中</div>'; return; }
+        if (!items.length) { document.getElementById("mem-out").innerHTML = '<div class="item">No matches</div>'; return; }
         appendItems("mem-out", items, function (it) {
           return "<b>[" + esc(it.key) + "]</b> " + esc(it.value) + "<div class='meta'>" + (it.tags || []).join(", ") + "</div>";
         });
-      }).catch(function (e) { document.getElementById("mem-out").innerHTML = '<div class="item">失败：' + esc(e.message) + "</div>"; });
+      }).catch(function (e) { document.getElementById("mem-out").innerHTML = '<div class="item">Failed: ' + esc(e.message) + "</div>"; });
   });
 
-  // ---- 文档 ----
+  // ---- docs ----
   document.getElementById("docs-search").addEventListener("click", function () {
     var q = document.getElementById("docs-q").value.trim();
     if (!q) return;
@@ -293,11 +294,11 @@ nav button.active{color:var(--brand)}
       .then(function (r) { return r.json(); })
       .then(function (d) {
         var sources = d.sources || [];
-        if (!sources.length) { document.getElementById("docs-out").innerHTML = '<div class="item">未命中</div>'; return; }
+        if (!sources.length) { document.getElementById("docs-out").innerHTML = '<div class="item">No matches</div>'; return; }
         appendItems("docs-out", sources, function (it) {
-          return "<b>" + esc(it.title) + "</b>（" + esc(it.version) + "）<div class='meta'>" + esc(it.excerpt || "") + "</div>";
+          return "<b>" + esc(it.title) + "</b> (" + esc(it.version) + ")<div class='meta'>" + esc(it.excerpt || "") + "</div>";
         });
-      }).catch(function (e) { document.getElementById("docs-out").innerHTML = '<div class="item">失败：' + esc(e.message) + "</div>"; });
+      }).catch(function (e) { document.getElementById("docs-out").innerHTML = '<div class="item">Failed: ' + esc(e.message) + "</div>"; });
   });
 
   function esc(s) {

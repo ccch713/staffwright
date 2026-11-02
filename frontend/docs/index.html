@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>文档中心 · deepDDW</title>
+<title>Docs · Staffwright</title>
 <style>
 :root{
   --bg-base:#050816;--bg-page:#0a0f24;--bg-card:#111a3a;--bg-elevated:#16204a;
@@ -13,7 +13,7 @@
   --border:#233052;--border-hover:#00e5ff;
 }
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:var(--bg-base);color:var(--text-primary);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;line-height:1.7;min-height:100vh}
+body{background:var(--bg-base);color:var(--text-primary);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;line-height:1.7;min-height:100vh}
 .wrap{max-width:1080px;margin:0 auto;padding:0 24px}
 .nav{background:rgba(5,8,22,.85);backdrop-filter:blur(18px);border-bottom:1px solid var(--border)}
 .nav .wrap{display:flex;align-items:center;justify-content:space-between;height:60px}
@@ -38,39 +38,39 @@ footer{border-top:1px solid var(--border);padding:28px 0;text-align:center;color
 </head>
 <body>
 <nav class="nav"><div class="wrap">
-  <div class="nav-brand">deep<b>DDW</b> · <span style="color:var(--text-secondary)">文档中心</span></div>
+  <div class="nav-brand">Staff<b>wright</b> · <span style="color:var(--text-secondary)">Docs</span></div>
   <div class="nav-links">
-    <a href="/ui/index.html">产品首页</a>
-    <a href="/ui/deepddw-launcher.html">启动器</a>
+    <a href="/ui/index.html">Product home</a>
+    <a href="/dsh/">Workbench</a>
   </div>
 </div></nav>
 
 <div class="hero"><div class="wrap">
-  <h1>📚 文档中心</h1>
-  <p>deepDDW 0.1 部署与使用说明 · 持续建设中</p>
+  <h1>📚 Documentation</h1>
+  <p>Staffwright deployment &amp; usage notes · work in progress</p>
 </div></div>
 
 <div class="wrap doc-grid">
-  <a class="doc-card" href="https://github.com/ccch713/deepddw" target="_blank" rel="noopener">
+  <a class="doc-card" href="https://github.com/ccch713/staffwright" target="_blank" rel="noopener">
     <div class="icon">📦</div>
-    <h3>仓库与发布</h3>
-    <p>deepDDW 开源仓库：源码、Docker Compose 一键部署、DELIVERY 记录。</p>
-    <div><span class="badge badge-green">GitHub</span><span class="meta">外部链接</span></div>
+    <h3>Repo &amp; releases</h3>
+    <p>The Staffwright open-source repo: source, Docker Compose one-command deploy, delivery log.</p>
+    <div><span class="badge badge-green">GitHub</span><span class="meta">External link</span></div>
   </a>
   <a class="doc-card" href="/health" target="_blank" rel="noopener">
     <div class="icon">🩺</div>
-    <h3>健康检查</h3>
-    <p>GET /health 与 GET /api/v1/gateway/verify —— 部署后先确认服务与 Token 正常。</p>
-    <div><span class="badge badge-green">公开</span><span class="meta">API</span></div>
+    <h3>Health check</h3>
+    <p>GET /health and GET /api/v1/gateway/verify — confirm the service and token right after deploying.</p>
+    <div><span class="badge badge-green">Public</span><span class="meta">API</span></div>
   </a>
 </div>
 
 <div class="wrap" style="background:var(--bg-card);border:1px dashed var(--border);border-radius:14px;padding:40px;text-align:center;color:var(--text-muted);font-size:14px">
-  更多文档建设中 —— 部署指南、MCP 客户端接入、插件开发规范将陆续上线
+  More docs are on the way — deploy guides, MCP client hookup, and plugin conventions will land here
 </div>
 
 <footer>
-  <div class="wrap">deepDDW 0.1 · 开源（DSH MIT + 各组件许可证） · 与商业仓物理隔离</div>
+  <div class="wrap">Staffwright · Open source (DSH MIT + component licenses)</div>
 </footer>
 </body>
 </html>

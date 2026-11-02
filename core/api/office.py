@@ -1,23 +1,25 @@
-"""v0.8.0（virtual-office）：虚拟办公室状态面板 API（只读聚合）。
+"""v0.8.0 (virtual-office): Virtual Office status panel API (read-only aggregation).
 
-定位：
-- 把 deepDDW 各子系统的**真实活动**（设备心跳 / 对话 / 记忆写入 / 知识库入库 /
-  LLM 用量）聚合为"虚拟员工在岗状态"，供 ``/ui/office.html`` 像素办公室渲染。
-- **view-only**：本模块不做任何写操作、不操控任务、不透出生成内容——
-  透出文本只有：固定岗位名、白名单统计短语（数量/分钟）。任何文档内容、
-  记忆 value、对话原文都不出此模块（合规红线，与 DDW staffview 同构）。
+Purpose:
+- Aggregate the **real activity** of Staffwright subsystems (device heartbeats /
+  chat / memory writes / knowledge-base ingests / LLM usage) into
+  "virtual staff on-duty status" for the pixel office at ``/ui/office.html``.
+- **view-only**: this module performs no writes, drives no tasks, and exposes no
+  generated content — the only text it emits is fixed job titles and whitelisted
+  count phrases (numbers/minutes). No document contents, memory values, or chat
+  transcripts ever leave this module (compliance red line, same design as DDW staffview).
 
-虚拟员工编制（固定 8 位，前端一一对应）：
-- 门卫大白（gateway）  — 设备注册/在线心跳
-- 接待小深（chat）     — 对话消息量（近 24h）
-- 记忆管家（memory）   — memory_entries 写入（近 24h）
-- 藏书员（kb）         — kb_documents 入库（近 24h）
-- 计量员（llm）        — llm_usage_records 调用/失败（近 24h）
-- 蒸馏师（distill）    — 蒸馏任务（有 recent 才亮，否则待命）
-- 备份员（backup）     — backups 目录最新备份时间
-- 网关中继（relay）    — org_relay.db 绑定活动（近 24h）
+Virtual staff roster (fixed 8 seats, mapped 1:1 in the frontend):
+- Al (gateway)   — device registration / online heartbeats
+- Sam (chat)     — chat message volume (last 24h)
+- Penny (memory) — memory_entries writes (last 24h)
+- Bo (kb)        — kb_documents ingests (last 24h)
+- Max (llm)      — llm_usage_records calls/failures (last 24h)
+- Dee (distill)  — distillation tasks (lit only when recent, else standing by)
+- Bea (backup)   — latest backup time in the backups directory
+- Rae (relay)    — org_relay.db binding activity (last 24h)
 
-端点（Token 门禁，向后兼容只增不改）：
+Endpoints (token-gated, append-only for backward compatibility):
 - GET /api/v1/office/state → {residents, digest, banner, meta}
 """
 
@@ -39,9 +41,9 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/v1", tags=["virtual-office"])
 
-# 活动窗口：超过该秒数无新事件 → 员工回 idle（防"永远在打字"的假在岗）
+# Active window: no new event for this many seconds → staff falls back to idle (no fake "forever typing")
 ACTIVE_WINDOW_S = 30 * 60
-# 状态聚合缓存：同一秒内多次拉取共用一份快照（大屏 + 嵌入页同开时省扫描）
+# Snapshot cache: pulls within the same second share one snapshot (saves scans when dashboard + embeds are open together)
 _CACHE_TTL_S = 5
 _cache: Dict[str, Any] = {"ts": 0.0, "data": None}
 
@@ -65,7 +67,7 @@ def _conn(path: Path | None = None) -> sqlite3.Connection:
 
 
 def _scalar(conn: sqlite3.Connection, sql: str, args: tuple = ()) -> Any:
-    """单值查询；表不存在/出错返回 None（办公室页面不因缺表翻车）。"""
+    """Scalar query; returns None if the table is missing or the query fails (the office page must not crash on missing tables)."""
     try:
         row = conn.execute(sql, args).fetchone()
         return row[0] if row else None
@@ -74,7 +76,7 @@ def _scalar(conn: sqlite3.Connection, sql: str, args: tuple = ()) -> Any:
 
 
 def _latest(conn: sqlite3.Connection, table: str, col: str) -> str | None:
-    """最近一次时间戳（文本列，YYYY-MM-DD HH:MM:SS 或 ISO）。"""
+    """Latest timestamp (text column, YYYY-MM-DD HH:MM:SS or ISO)."""
     return _scalar(conn, f"SELECT MAX({col}) FROM {table}")
 
 
@@ -92,7 +94,7 @@ def _parse_ts(v: Any) -> float | None:
 
 
 def _recent(conn: sqlite3.Connection, table: str, col: str, hours: float = 24) -> int:
-    """近 N 小时行数（容错：时间列不可解析时退化为总数）。"""
+    """Rows in the last N hours (fallback: total count when the time column is unparseable)."""
     try:
         row = conn.execute(
             f"SELECT {col}, COUNT(*) AS n FROM {table} "
@@ -107,7 +109,7 @@ def _recent(conn: sqlite3.Connection, table: str, col: str, hours: float = 24) -
 
 
 def office_snapshot() -> Dict[str, Any]:
-    """聚合快照：固定编制 + 真实活动计数 → 前端状态机输入。"""
+    """Aggregated snapshot: fixed roster + real activity counts → input for the frontend state machine."""
     now = time.time()
     if _cache["data"] is not None and now - _cache["ts"] < _CACHE_TTL_S:
         return _cache["data"]
@@ -119,8 +121,8 @@ def office_snapshot() -> Dict[str, Any]:
     banner: Dict[str, Any] | None = None
     meta: Dict[str, Any] = {}
 
-    try:  # noqa: SIM105 —— 每段独立容错，缺表/缺库都不得让面板翻车
-        # —— 门卫大白：设备在线 ——
+    try:  # noqa: SIM105 — each block fails independently; missing tables/dbs must never crash the panel
+        # —— Al, gateway doorman: devices online ——
         try:
             rows = conn.execute(
                 "SELECT device_id, device_name, last_seen FROM devices ORDER BY last_seen DESC"
@@ -134,49 +136,49 @@ def office_snapshot() -> Dict[str, Any]:
             if online > 0:
                 residents["gateway"] = {
                     "state": "working",
-                    "note": f"{online} 台设备在线",
+                    "note": f"{online} devices online",
                     "today": {"done": total_dev, "failed": 0},
                 }
             else:
-                residents["gateway"] = {"state": "idle", "note": "无设备在线"}
+                residents["gateway"] = {"state": "idle", "note": "No devices online"}
             meta["devices_online"] = online
             meta["devices_total"] = total_dev
             if total_dev:
-                digest_top.append({"name": "门卫大白", "text": f"今日见过 {total_dev} 台设备，当前在线 {online} 台"})
+                digest_top.append({"name": "Al", "text": f"Greeted {total_dev} devices today, {online} online now"})
         except sqlite3.Error:
             residents["gateway"] = {"state": "away"}
 
-        # —— 接待小深：对话消息 ——
+        # —— Sam, chat reception: messages ——
         try:
             n_chat = _recent(conn, "chat_messages", "created_at", 24)
             last_chat = _parse_ts(_latest(conn, "chat_messages", "created_at"))
             busy = last_chat is not None and now - last_chat <= ACTIVE_WINDOW_S
             residents["chat"] = {
                 "state": "working" if busy else ("sleeping" if n_chat == 0 else "idle"),
-                "note": ("刚收到消息" if busy else (f"今日 {n_chat} 条消息" if n_chat else "今天还没人说话")),
+                "note": ("Message just arrived" if busy else (f"{n_chat} messages today" if n_chat else "Quiet day — no messages yet")),
                 "today": {"done": n_chat, "failed": 0},
             }
             if n_chat:
-                digest_top.append({"name": "接待小深", "text": f"今日接待 {n_chat} 条对话消息"})
+                digest_top.append({"name": "Sam", "text": f"Handled {n_chat} chat messages today"})
         except sqlite3.Error:
             residents["chat"] = {"state": "away"}
 
-        # —— 记忆管家：memory_entries ——
+        # —— Penny, memory butler: memory_entries ——
         try:
             n_mem = _recent(conn, "memory_entries", "updated_at", 24)
             last_mem = _parse_ts(_latest(conn, "memory_entries", "updated_at"))
             busy = last_mem is not None and now - last_mem <= ACTIVE_WINDOW_S
             residents["memory"] = {
                 "state": "doc" if busy else "idle",
-                "note": ("正在记笔记" if busy else f"共 {conn.execute('SELECT COUNT(*) FROM memory_entries').fetchone()[0]} 条记忆"),
+                "note": ("Taking notes" if busy else f"{conn.execute('SELECT COUNT(*) FROM memory_entries').fetchone()[0]} memories on file"),
                 "today": {"done": n_mem, "failed": 0},
             }
             if n_mem:
-                digest_top.append({"name": "记忆管家", "text": f"今日整理 {n_mem} 条记忆"})
+                digest_top.append({"name": "Penny", "text": f"Filed {n_mem} memories today"})
         except sqlite3.Error:
             residents["memory"] = {"state": "away"}
 
-        # —— 藏书员：kb_documents ——
+        # —— Bo, librarian: kb_documents ——
         try:
             n_kb = _recent(conn, "kb_documents", "created_at", 24)
             total_kb = _scalar(conn, "SELECT COUNT(*) FROM kb_documents") or 0
@@ -184,15 +186,15 @@ def office_snapshot() -> Dict[str, Any]:
             busy = last_kb is not None and now - last_kb <= ACTIVE_WINDOW_S
             residents["kb"] = {
                 "state": "doc" if busy else "idle",
-                "note": ("正在上架文档" if busy else f"藏书 {total_kb} 本"),
+                "note": ("Shelving new documents" if busy else f"{total_kb} documents on the shelves"),
                 "today": {"done": n_kb, "failed": 0},
             }
             if n_kb:
-                digest_top.append({"name": "藏书员", "text": f"今日入库 {n_kb} 份文档"})
+                digest_top.append({"name": "Bo", "text": f"Ingested {n_kb} documents today"})
         except sqlite3.Error:
             residents["kb"] = {"state": "away"}
 
-        # —— 计量员：llm_usage_records ——
+        # —— Max, meter clerk: llm_usage_records ——
         try:
             n_llm = _recent(conn, "llm_usage_records", "created_at", 24)
             n_fail = 0
@@ -208,19 +210,19 @@ def office_snapshot() -> Dict[str, Any]:
             busy = last_llm is not None and now - last_llm <= ACTIVE_WINDOW_S
             residents["llm"] = {
                 "state": "upset" if n_fail > 3 else ("working" if busy else "idle"),
-                "note": ("结算中" if busy else f"今日 {n_llm} 次调用"),
+                "note": ("Metering calls" if busy else f"{n_llm} calls today"),
                 "today": {"done": n_llm, "failed": n_fail},
             }
             if n_llm:
-                digest_top.append({"name": "计量员", "text": f"今日 LLM 调用 {n_llm} 次" + (f"，失败 {n_fail} 次" if n_fail else "")})
+                digest_top.append({"name": "Max", "text": f"{n_llm} LLM calls today" + (f", {n_fail} failed" if n_fail else "")})
             if n_fail:
-                digest_fails.append({"name": "计量员", "text": f"近 24h 有 {n_fail} 次 LLM 调用失败"})
-                banner = {"level": "bad", "count": n_fail, "text": "次 LLM 调用失败（近 24h），建议看下网关日志"}
+                digest_fails.append({"name": "Max", "text": f"{n_fail} LLM calls failed in the last 24h"})
+                banner = {"level": "bad", "count": n_fail, "text": "LLM calls failed (last 24h) — check the gateway logs"}
         except sqlite3.Error:
             residents["llm"] = {"state": "away"}
 
-        # —— 蒸馏师 / 备份员 / 网关中继：轻探测 ——
-        residents["distill"] = {"state": "idle", "note": "待命"}
+        # —— Dee / Bea / Rae: light probes ——
+        residents["distill"] = {"state": "idle", "note": "Standing by"}
         try:
             bdir = _db_path().parent / "backups"
             if bdir.exists():
@@ -229,16 +231,16 @@ def office_snapshot() -> Dict[str, Any]:
                     age_h = (now - backups[0].stat().st_mtime) / 3600
                     residents["backup"] = {
                         "state": "celebrating" if age_h < 1 else "idle",
-                        "note": f"最近备份 {int(age_h)}h 前",
+                        "note": f"Last backup {int(age_h)}h ago",
                     }
-                    digest_top.append({"name": "备份员", "text": f"最近备份：{backups[0].name[:32]}（{int(age_h)} 小时前）"})
+                    digest_top.append({"name": "Bea", "text": f"Last backup: {backups[0].name[:32]} ({int(age_h)}h ago)"})
                 else:
-                    residents["backup"] = {"state": "upset", "note": "还没有备份"}
-                    digest_fails.append({"name": "备份员", "text": "backups 目录为空，还没做过备份"})
+                    residents["backup"] = {"state": "upset", "note": "No backup yet"}
+                    digest_fails.append({"name": "Bea", "text": "The backups directory is empty — no backup taken yet"})
             else:
-                residents["backup"] = {"state": "idle", "note": "待命"}
+                residents["backup"] = {"state": "idle", "note": "Standing by"}
         except OSError:
-            residents["backup"] = {"state": "idle", "note": "待命"}
+            residents["backup"] = {"state": "idle", "note": "Standing by"}
 
         try:
             relay_db = _db_path().parent / "org_relay.db"
@@ -252,12 +254,12 @@ def office_snapshot() -> Dict[str, Any]:
                     rc.close()
                 residents["relay"] = {
                     "state": "working" if n_bind else "idle",
-                    "note": f"今日 {n_bind} 次绑定" if n_bind else "中继待命",
+                    "note": f"{n_bind} bindings today" if n_bind else "Relay standing by",
                 }
             else:
-                residents["relay"] = {"state": "idle", "note": "未启用"}
+                residents["relay"] = {"state": "idle", "note": "Not enabled"}
         except sqlite3.Error:
-            residents["relay"] = {"state": "idle", "note": "未启用"}
+            residents["relay"] = {"state": "idle", "note": "Not enabled"}
 
         meta["generated_at"] = datetime.now().isoformat(timespec="seconds")
     finally:
@@ -275,5 +277,5 @@ def office_snapshot() -> Dict[str, Any]:
 
 @router.get("/office/state")
 async def office_state(_: Dict[str, Any] = Depends(require_access_token)):
-    """虚拟办公室状态面板（只读聚合，Token 门禁）。"""
+    """Virtual Office status panel (read-only aggregation, token-gated)."""
     return ok(office_snapshot())

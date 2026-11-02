@@ -1,18 +1,18 @@
 /*!
- * virtual-office.js — 虚拟办公室渲染核心（单文件 · 零依赖 · 原创程序化像素实现）
- * 规格：《虚拟员工可视化设计包》PRD §5/§6/§7（活动→动画状态机 / 重要性加权战报）
- * 版权：原创 clean-room 实现，不包含任何第三方代码或美术资产；角色/家具全部代码绘制。
- * 用法：new VirtualOffice(container, { roster, poll, demo, strings, theme })
+ * virtual-office.js — Virtual Office render core (single file · zero dependencies · original programmatic pixel art)
+ * Design: activity-to-animation state machine / importance-weighted daily report
+ * Copyright: original clean-room implementation; no third-party code or art assets — every character and piece of furniture is drawn in code.
+ * Usage: new VirtualOffice(container, { roster, poll, demo, strings, theme })
  */
 (function (global) {
   'use strict';
 
-  var TILE = 16;            // 逻辑瓦片尺寸
-  var GRID_W = 48, GRID_H = 30;   // 逻辑网格
-  var ANIM_FPS = 8;         // 精灵动画帧率（像素感）
+  var TILE = 16;            // logical tile size
+  var GRID_W = 48, GRID_H = 30;   // logical grid
+  var ANIM_FPS = 8;         // sprite animation FPS (pixel feel)
   var STATE_SET = { idle:1, walking:1, working:1, search:1, doc:1, celebrating:1, upset:1, sleeping:1, alert:1, away:1 };
 
-  // ---------- 工具 ----------
+  // ---------- utilities ----------
   function lerp(a, b, t) { return a + (b - a) * t; }
   function clamp(v, lo, hi) { return v < lo ? lo : v > hi ? hi : v; }
   function el(tag, cls, html) {
@@ -21,7 +21,7 @@
     if (html != null) e.innerHTML = html;
     return e;
   }
-  function rr(ctx, x, y, w, h, r) { // 圆角矩形路径
+  function rr(ctx, x, y, w, h, r) { // rounded-rect path
     ctx.beginPath();
     ctx.moveTo(x + r, y);
     ctx.arcTo(x + w, y, x + w, y + h, r);
@@ -31,7 +31,7 @@
     ctx.closePath();
   }
 
-  // ---------- 默认主题（深色像素风，三产品共用；accent 可覆盖） ----------
+  // ---------- default theme (dark pixel style; accent overridable) ----------
   var DEFAULT_THEME = {
     bg: '#0b0f14', floorA: '#131a24', floorB: '#182030', wall: '#1a2330', wallTop: '#223041',
     furniture: '#26334a', furnitureEdge: '#324260', screen: '#3fb1ff', screenGlow: 'rgba(63,177,255,.25)',
@@ -41,26 +41,26 @@
   };
 
   var DEFAULT_STRINGS = {
-    demoBtn: '演示模式', demoOn: '演示中', stop: '退出演示', fullscreen: '全屏',
-    rosterTitle: '在岗板', digestTitle: '今日战报', failTitle: '今日翻车',
-    away: '暂离', idle: '摸鱼中', walking: '走向工位', working: '干活中',
-    search: '查资料', doc: '写文档', celebrating: '交付 ✅', upset: '翻车了',
-    sleeping: '睡着了', alert: '待处理！', away_note: '今日尚未开工',
-    offline: '后端暂离，画面的全是幻影…恢复后自动重连', empty: '今天还没有动静',
-    todayDone: '今日完成', todayFail: '今日翻车', viewCard: '查看名片'
+    demoBtn: 'Demo', demoOn: 'Demo running', stop: 'Stop demo', fullscreen: 'Fullscreen',
+    rosterTitle: 'On Duty', digestTitle: "Today's Report", failTitle: 'Stumbles',
+    away: 'Away', idle: 'Idle', walking: 'Heading to desk', working: 'Working',
+    search: 'Researching', doc: 'Writing docs', celebrating: 'Shipped ✅', upset: 'Hit a snag',
+    sleeping: 'Asleep', alert: 'Needs attention!', away_note: "Hasn't started today",
+    offline: 'Backend offline — this scene is a mirage… reconnects automatically', empty: 'No activity yet today',
+    todayDone: 'Done today', todayFail: 'Failed today', viewCard: 'View card', currentState: 'Now'
   };
 
-  // ---------- 主类 ----------
+  // ---------- main class ----------
   function VirtualOffice(container, opts) {
-    if (!container || !opts || !Array.isArray(opts.roster)) throw new Error('VirtualOffice: container 与 roster 必填');
+    if (!container || !opts || !Array.isArray(opts.roster)) throw new Error('VirtualOffice: container and roster are required');
     this.container = typeof container === 'string' ? document.querySelector(container) : container;
     this.opts = opts;
     this.theme = Object.assign({}, DEFAULT_THEME, opts.theme || {});
     this.S = Object.assign({}, DEFAULT_STRINGS, opts.strings || {});
     this.roster = opts.roster;
     this.states = {};        // id -> {state, note, since, today}
-    this.pos = {};           // id -> {x, y} 当前渲染坐标（瓦片）
-    this.target = {};        // id -> {x, y} 目标坐标
+    this.pos = {};           // id -> {x, y} current render position (tiles)
+    this.target = {};        // id -> {x, y} target position
     this.digest = null; this.banner = null;
     this.demo = { on: false, idx: 0, t0: 0 };
     this.offline = false;
@@ -87,7 +87,7 @@
       '<div class="vo-title"><span class="vo-logo"></span><div><h1></h1><p></p></div></div>' +
       '<div class="vo-btns"><button class="vo-btn" data-a="demo"></button>' +
       '<button class="vo-btn" data-a="fs">' + this.S.fullscreen + '</button></div>';
-    this.header.querySelector('h1').textContent = this.opts.title || '虚拟办公室';
+    this.header.querySelector('h1').textContent = this.opts.title || 'Virtual Office';
     this.header.querySelector('p').textContent = this.opts.subtitle || '';
     this.container.appendChild(this.header);
 
@@ -132,7 +132,7 @@
 
   VirtualOffice.css = function (T) {
     return ''
-    + '.vo-root{background:' + T.pageBg + ';color:' + T.textPanel + ';font:14px/1.6 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;'
+    + '.vo-root{background:' + T.pageBg + ';color:' + T.textPanel + ';font:14px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;'
     + 'display:flex;flex-direction:column;border-radius:14px;overflow:hidden;position:relative}'
     + '.vo-root *{box-sizing:border-box}'
     + '.vo-head{display:flex;align-items:center;justify-content:space-between;padding:14px 18px 10px;gap:12px;flex-wrap:wrap}'
@@ -187,19 +187,19 @@
     ;
   };
 
-  // 布局：按 roster 顺序给每个居民分配工位（自动网格）
+  // Layout: assign desks in roster order (auto grid)
   VirtualOffice.prototype._layoutDesks = function () {
     var perRow = 4, x0 = 3, y0 = 5, dx = 5.5, dy = 5.2, i = 0;
     for (var r = 0; r < 4; r++) for (var c = 0; c < perRow && i < this.roster.length; c++, i++) {
       var m = this.roster[i];
       var d = m.desk && m.desk.x != null ? m.desk : { x: x0 + c * dx, y: y0 + r * dy };
       m._desk = { x: d.x, y: d.y };
-      // 初始站位：工位旁
+      // initial position: beside the desk
       this.pos[m.id] = { x: d.x + 1.5, y: d.y + 1.2 };
       this.target[m.id] = { x: d.x + 1.5, y: d.y + 1.2 };
       this.states[m.id] = { state: 'idle', note: '' };
     }
-    // 前台/大门坐标（下方正中）
+    // reception / door coordinates (bottom center)
     this._door = { x: GRID_W / 2, y: GRID_H - 1.5 };
     this._front = { x: GRID_W / 2, y: GRID_H - 4.5 };
     this._coffee = { x: GRID_W - 6.5, y: GRID_H - 5.5 };
@@ -221,7 +221,7 @@
     this._raf = requestAnimationFrame(step);
   };
 
-  // ---------- 数据轮询 ----------
+  // ---------- data polling ----------
   VirtualOffice.prototype._startPoll = function () {
     var self = this, iv = this.opts.poll.interval || 5000;
     async function pull() {
@@ -240,7 +240,7 @@
     this._pollTimer = setInterval(pull, iv);
   };
 
-  // 外部/轮询灌入状态：{residents:{id:{state,note,today:{done,failed}}}, digest, banner}
+  // Feed state from polling: {residents:{id:{state,note,today:{done,failed}}}, digest, banner}
   VirtualOffice.prototype.applyState = function (st) {
     var rs = st.residents || {};
     for (var id in rs) {
@@ -256,7 +256,7 @@
     this._renderSide();
   };
 
-  // ---------- 演示模式 ----------
+  // ---------- demo mode ----------
   VirtualOffice.prototype._toggleDemo = function () {
     if (this.demo.on) { this._stopDemo(); return; }
     if (!this.opts.demo || !this.opts.demo.script) return;
@@ -289,13 +289,13 @@
     if (this.demo.idx >= sc.length && el2 > (d.holdAfter || 8) + (sc[sc.length - 1].t)) this._stopDemo();
   };
 
-  // ---------- 每帧逻辑 ----------
+  // ---------- per-frame logic ----------
   VirtualOffice.prototype._tick = function (dt) {
     if (this.demo.on) this._demoTick();
-    var k = clamp(dt / 1000 * 6, 0, 1);   // 位移平滑系数
+    var k = clamp(dt / 1000 * 6, 0, 1);   // movement smoothing factor
     for (var i = 0; i < this.roster.length; i++) {
       var m = this.roster[i], st = this.states[m.id];
-      // 目标位：工作态回工位；行走态向前台；咖啡彩蛋
+      // Target: working states return to the desk; walking heads to reception; coffee easter egg for sleepers
       var tgt = this.target[m.id];
       if (st.state === 'walking') tgt = { x: this._front.x, y: this._front.y };
       else if (st.state === 'sleeping' && (this._frame % 240) < 60) tgt = { x: this._coffee.x, y: this._coffee.y };
@@ -307,7 +307,7 @@
     }
   };
 
-  // ---------- 绘制 ----------
+  // ---------- drawing ----------
   VirtualOffice.prototype._draw = function () {
     var ctx = this.canvas.getContext('2d');
     var W = this.canvas.width, H = this.canvas.height;
@@ -319,12 +319,12 @@
     this._drawMeeting(ctx);
     this._drawCoffee(ctx);
     this._drawDoor(ctx);
-    // 工位（含桌名牌）
+    // desks (with name plates)
     for (var i = 0; i < this.roster.length; i++) this._drawDesk(ctx, this.roster[i]);
-    // 人（按 y 排序保证遮挡关系）
+    // people (sorted by y for correct overlap)
     var list = this.roster.slice().sort(function (a, b) { return a._desk.y - b._desk.y; });
     for (var j = 0; j < list.length; j++) this._drawPerson(ctx, list[j]);
-    // 顶部横幅由 DOM 承担，这里画个室内时钟
+    // top banner is DOM-rendered; draw an in-office clock here
     this._drawClock(ctx);
   };
 
@@ -334,12 +334,12 @@
       ctx.fillStyle = ((x + y) & 1) ? T.floorA : T.floorB;
       ctx.fillRect(x * TILE, y * TILE, TILE, TILE);
     }
-    // 门口地毯（迎宾垫）
+    // doormat at the entrance
     ctx.fillStyle = 'rgba(63,177,255,.14)';
     ctx.fillRect((this._door.x - 2.4) * TILE, (GRID_H - 3.2) * TILE, TILE * 4.8, TILE * 2.2);
     ctx.strokeStyle = 'rgba(63,177,255,.35)'; ctx.lineWidth = 2;
     ctx.strokeRect((this._door.x - 2.4) * TILE, (GRID_H - 3.2) * TILE, TILE * 4.8, TILE * 2.2);
-    // 左下 + 右上角大绿植（画在地板之后才不被覆盖）
+    // large plants, bottom-left + top-right (drawn after the floor so they stay on top)
     this._drawPlant(ctx, TILE * 1.2, TILE * (GRID_H - 6), 1.6);
     this._drawPlant(ctx, TILE * (GRID_W - 4.2), TILE * 3.4, 1.4);
   };
@@ -348,7 +348,7 @@
     var T = this.theme;
     ctx.fillStyle = T.wall; ctx.fillRect(0, 0, GRID_W * TILE, TILE * 2.6);
     ctx.fillStyle = T.wallTop; ctx.fillRect(0, TILE * 2.6, GRID_W * TILE, 4);
-    // 窗户
+    // windows
     for (var i = 0; i < 6; i++) {
       var wx = 3 + i * 7.6;
       ctx.fillStyle = '#0e1a26'; ctx.fillRect(wx * TILE, TILE * 0.5, TILE * 3.4, TILE * 1.5);
@@ -362,21 +362,21 @@
   VirtualOffice.prototype._drawMeeting = function (ctx) {
     var T = this.theme, m = this._meeting;
     var x = m.x * TILE, y = m.y * TILE;
-    // 白板
+    // whiteboard
     ctx.fillStyle = '#0e1a26'; ctx.fillRect(x, TILE * 3.1, TILE * 6, TILE * 2.2);
     ctx.strokeStyle = T.furnitureEdge; ctx.lineWidth = 2; ctx.strokeRect(x, TILE * 3.1, TILE * 6, TILE * 2.2);
     ctx.fillStyle = 'rgba(63,177,255,.35)';
     ctx.fillRect(x + 6, TILE * 3.1 + 6, TILE * 2.4, 3);
     ctx.fillRect(x + 6, TILE * 3.1 + 13, TILE * 4.2, 3);
     ctx.fillRect(x + 6, TILE * 3.1 + 20, TILE * 1.6, 3);
-    // 长桌
+    // long table
     ctx.fillStyle = T.furniture; ctx.fillRect(x + TILE * 0.4, y + TILE * 0.6, TILE * 5.2, TILE * 2.6);
     ctx.fillStyle = T.furnitureEdge; ctx.fillRect(x + TILE * 0.4, y + TILE * 0.6, TILE * 5.2, 4);
-    // 桌面水杯 ×2
+    // cups on the table ×2
     ctx.fillStyle = '#cfe0ff';
     ctx.fillRect(x + TILE * 1.2, y + TILE * 1.7, 4, 5); ctx.fillRect(x + TILE * 3.6, y + TILE * 1.7, 4, 5);
     ctx.fillStyle = T.mint; ctx.fillRect(x + TILE * 1.2, y + TILE * 1.7, 4, 2); ctx.fillRect(x + TILE * 3.6, y + TILE * 1.7, 4, 2);
-    // 椅子四个
+    // chairs
     for (var i = 0; i < 3; i++) {
       ctx.fillStyle = '#161e2a';
       ctx.fillRect(x + TILE * (0.9 + i * 1.6), y + TILE * 0.1, TILE * 0.8, TILE * 0.5);
@@ -390,9 +390,9 @@
     ctx.fillStyle = T.furniture; ctx.fillRect(x, y, TILE * 2.4, TILE * 1.2);
     ctx.fillStyle = T.coffee; ctx.fillRect(x + 4, y + 4, TILE * 0.9, TILE * 0.9);
     ctx.fillStyle = T.warn; ctx.fillRect(x + TILE * 1.3, y + 6, 6, 6);
-    // 吧台
+    // bar counter
     ctx.fillStyle = T.furniture; ctx.fillRect(x - TILE * 2.8, y + TILE * 1.6, TILE * 5.2, TILE * 0.8);
-    // 绿植（咖啡机旁 + 吧台尾）
+    // plants (by the coffee machine + end of the bar)
     this._drawPlant(ctx, x + TILE * 2.6, y - TILE * 0.4, 1.3);
     this._drawPlant(ctx, x - TILE * 3.4, y + TILE * 0.4, 1.1);
   };
@@ -412,7 +412,7 @@
     var x = (d.x - 1.2) * TILE, y = (GRID_H - 2.6) * TILE;
     ctx.fillStyle = '#0d1420'; ctx.fillRect(x, y, TILE * 2.4, TILE * 2.6);
     ctx.strokeStyle = T.accent; ctx.lineWidth = 2; ctx.strokeRect(x, y, TILE * 2.4, TILE * 2.6);
-    // 门上"欢迎"指示灯
+    // "welcome" indicator light on the door
     var on = (this._frame % 16) < 8;
     ctx.fillStyle = on ? T.mint : T.furnitureEdge;
     ctx.fillRect(x + TILE * 1.05, y + 6, 6, 6);
@@ -423,10 +423,10 @@
     var x = m._desk.x * TILE, y = m._desk.y * TILE;
     var absent = st && st.state === 'away';
     ctx.globalAlpha = absent ? 0.45 : 1;
-    // 桌
+    // desk top
     ctx.fillStyle = T.furniture; ctx.fillRect(x, y + TILE * 0.7, TILE * 3, TILE * 1.5);
     ctx.fillStyle = T.furnitureEdge; ctx.fillRect(x, y + TILE * 0.7, TILE * 3, 3);
-    // 显示器（工作中发光呼吸）
+    // monitor (breathing glow while working)
     var glow = 0;
     if (st && (st.state === 'working' || st.state === 'search' || st.state === 'doc')) {
       glow = 0.5 + 0.5 * Math.sin(this._frame / 4);
@@ -438,16 +438,16 @@
     }
     ctx.fillStyle = glow > 0 ? T.screen : '#1a2536';
     ctx.fillRect(x + TILE * 0.62, y - TILE * 0.38, TILE * 1.76, TILE * 0.86);
-    // 支架
+    // stand
     ctx.fillStyle = T.furnitureEdge; ctx.fillRect(x + TILE * 1.4, y + TILE * 0.6, TILE * 0.2, TILE * 0.14);
-    // 桌牌
+    // name plate
     ctx.fillStyle = absent ? T.dim : 'rgba(234,242,251,.75)';
     ctx.font = '9px sans-serif'; ctx.textAlign = 'center';
     ctx.fillText(m.name, x + TILE * 1.5, y + TILE * 2.62);
     ctx.globalAlpha = 1;
   };
 
-  // 程序化小人（约 10×16 逻辑像素，像素画风格）
+  // programmatic person (about 10×16 logical pixels, pixel-art style)
   VirtualOffice.prototype._drawPerson = function (ctx, m) {
     var st = this.states[m.id]; if (!st) return;
     var p = this.pos[m.id];
@@ -458,7 +458,7 @@
     var dir = st._dir || 1;
     ctx.save();
     ctx.translate(px, py);
-    // 状态微动画
+    // per-state micro-animations
     var bob = 0, tilt = 0, armUp = 0, crouch = 0, typeArm = 0;
     if (st.state === 'idle' || st.state === 'walking') bob = ((f % 10) < 5) ? 0 : 1;
     if (st.state === 'sleeping') tilt = 0.07;
@@ -469,7 +469,7 @@
 
     ctx.scale(dir, 1); ctx.rotate(tilt);
     var y0 = bob + crouch;
-    // 腿
+    // legs
     ctx.fillStyle = '#2a3342';
     if (st._moving) {
       var w = (f % 4);
@@ -478,22 +478,22 @@
     } else {
       ctx.fillRect(-3, y0 + 11, 2, 4); ctx.fillRect(1, y0 + 11, 2, 4);
     }
-    // 身
+    // body
     ctx.fillStyle = cloth;
     ctx.fillRect(-4, y0 + 4, 8, 8);
-    // 手臂
+    // arms
     ctx.fillStyle = skin;
     if (armUp) { ctx.fillRect(3, y0 - 2, 2, 7); ctx.fillRect(-5, y0 + 5, 2, 5); }
     else if (typeArm) { ctx.fillRect(-6, y0 + 6, 3, 2); ctx.fillRect(3, y0 + 6, 3, 2); }
     else { ctx.fillRect(-5, y0 + 5, 2, 5); ctx.fillRect(3, y0 + 5, 2, 5); }
-    // 头
+    // head
     ctx.fillStyle = skin; ctx.fillRect(-3, y0 - 3, 6, 6);
     ctx.fillStyle = hair; ctx.fillRect(-3, y0 - 4, 6, 3);
     if (dir < 0) { ctx.fillStyle = hair; ctx.fillRect(1, y0 - 3, 2, 2); }
-    // 睡觉 zZz / 气泡
+    // sleeping zZz / bubble
     ctx.restore();
 
-    // 气泡（不随 dir 翻转）
+    // bubble (does not flip with dir)
     this._drawBubble(ctx, m, px, py - (18 + bob));
     ctx.globalAlpha = 1;
   };
@@ -513,12 +513,12 @@
     }
     if (!kind) return;
     var T = this.theme, bx = px + 8, by = py - 6;
-    // 云朵泡
+    // cloud bubble
     ctx.fillStyle = '#eaf2fb';
     rr(ctx, bx, by, 22, 16, 5); ctx.fill();
     ctx.fillStyle = '#eaf2fb';
     ctx.beginPath(); ctx.moveTo(bx + 4, by + 15); ctx.lineTo(bx + 8, by + 21); ctx.lineTo(bx + 11, by + 15); ctx.fill();
-    // alert 用红底
+    // alert uses a red bubble
     if (kind === 'alertdot') {
       ctx.fillStyle = T.bad; rr(ctx, bx, by, 22, 16, 5); ctx.fill();
       ctx.fillStyle = '#fff'; ctx.font = 'bold 11px monospace'; ctx.textAlign = 'center';
@@ -562,13 +562,13 @@
     rr(ctx, GRID_W * TILE - 74, 8, 62, 24, 6); ctx.fill();
     ctx.fillStyle = T.mint; ctx.font = 'bold 13px monospace'; ctx.textAlign = 'center';
     ctx.fillText(txt, GRID_W * TILE - 43, 25);
-    // 呼吸小点（表示"活着"）
+    // breathing dot (means "alive")
     var on = (this._frame % 16) < 8;
     ctx.fillStyle = on ? T.mint : '#233';
     ctx.fillRect(GRID_W * TILE - 66, 15, 4, 4);
   };
 
-  // ---------- 侧栏 / 横幅 / 名片 ----------
+  // ---------- sidebar / banner / card ----------
   VirtualOffice.prototype._stateLabel = function (s) {
     var M = {
       idle: this.S.idle, walking: this.S.walking, working: this.S.working, search: this.S.search,
@@ -585,7 +585,7 @@
 
   VirtualOffice.prototype._renderSide = function () {
     var self = this;
-    // 在岗板
+    // on-duty board
     var box = this.rosterBox.querySelector('.vo-roster'); box.innerHTML = '';
     this.roster.forEach(function (m) {
       var st = self.states[m.id] || {};
@@ -596,7 +596,7 @@
       row.addEventListener('click', function () { self._openCard(m); });
       box.appendChild(row);
     });
-    // 战报
+    // daily report
     var dg = this.digestBox.querySelector('.vo-digest'); dg.innerHTML = '';
     if (!this.digest || (!this.digest.top && !this.digest.fails)) {
       dg.appendChild(el('div', 'vo-dempty', this.S.empty));
@@ -614,7 +614,7 @@
         });
       }
     }
-    // 横幅
+    // banner
     if (this.banner && this.banner.text) {
       this.bannerEl.style.display = 'flex';
       this.bannerEl.className = 'vo-banner ' + (this.banner.level || 'warn');
@@ -646,9 +646,9 @@
       '<div class="bio">' + (m.bio || '') + '</div>' +
       '<div class="stats"><div><b>' + ((st.today && st.today.done) || 0) + '</b>' + this.S.todayDone + '</div>' +
       '<div><b>' + ((st.today && st.today.failed) || 0) + '</b>' + this.S.todayFail + '</div>' +
-      '<div><b>' + this._stateLabel(st.state) + '</b>当前状态</div></div>';
+      '<div><b>' + this._stateLabel(st.state) + '</b>' + this.S.currentState + '</div></div>';
     this.card.appendChild(inn);
-    // 画大头像（放大 4 倍的同款小人）
+    // draw the big avatar (same person, 4× scale)
     var cv = inn.querySelector('canvas'), c2 = cv.getContext('2d');
     c2.imageSmoothingEnabled = false;
     var tmp = document.createElement('canvas'); tmp.width = 16; tmp.height = 20;
