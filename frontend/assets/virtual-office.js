@@ -252,7 +252,8 @@
       this.states[id].today = s.today || this.states[id].today;
     }
     this.digest = st.digest || null;
-    this.banner = st.banner || null;
+    // Frames may omit `banner` (demo script `set` items) — only touch it when present
+    if (st.banner !== undefined) this.banner = st.banner;
     this._renderSide();
   };
 
@@ -284,7 +285,7 @@
     while (this.demo.idx < sc.length && sc[this.demo.idx].t <= el2) {
       var s = sc[this.demo.idx++];
       if (s.residents) this.applyState({ residents: s.residents, digest: s.digest, banner: s.banner });
-      else if (s.set) this.applyState({ residents: s.set });
+      else if (s.set) this.applyState({ residents: s.set, banner: s.banner });
     }
     if (this.demo.idx >= sc.length && el2 > (d.holdAfter || 8) + (sc[sc.length - 1].t)) this._stopDemo();
   };
