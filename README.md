@@ -4,6 +4,10 @@
 [![CI](https://github.com/ccch713/staffwright/actions/workflows/ci.yml/badge.svg)](https://github.com/ccch713/staffwright/actions/workflows/ci.yml)
 [![Listed in awesome-deepseek-harness](https://img.shields.io/badge/awesome--deepseek--harness-Listed-blue)](https://github.com/0xsline/awesome-deepseek-harness#memory--knowledge)
 
+<p align="center">
+  <img src="docs/images/hero.png" alt="Staffwright — your small team's AI staff: shared memory, knowledge base & document search on your own hardware" width="100%">
+</p>
+
 **Staffwright turns one ordinary computer into your team's AI workstation: shared long-term memory, a company knowledge base, document search, and a live office view of your AI at work. Deploy once — every phone, laptop and tablet on your network reaches it from the browser. No app installs. Up to ~20 people. MIT-licensed.**
 
 *(staff + wright, as in "playwright" — a maker of staff.)*
