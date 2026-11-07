@@ -1,6 +1,7 @@
 # Staffwright — Your Small Team's AI Staff, Self-Hosted
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![M8ven Score](https://m8ven.ai/badge/mcp/ccch713/staffwright)](https://m8ven.ai/mcp/ccch713/staffwright?s=readme)
 [![CI](https://github.com/ccch713/staffwright/actions/workflows/ci.yml/badge.svg)](https://github.com/ccch713/staffwright/actions/workflows/ci.yml)
 [![Listed in awesome-deepseek-harness](https://img.shields.io/badge/awesome--deepseek--harness-Listed-blue)](https://github.com/0xsline/awesome-deepseek-harness#memory--knowledge)
 
